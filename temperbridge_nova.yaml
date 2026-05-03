@@ -1,0 +1,5 @@
+# this configuration file compiles the test device setup.
+# use 'esphome compile temperbridge_nova.yaml' to build.
+
+packages:
+  device: !include device.yaml
