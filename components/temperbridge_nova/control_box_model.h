@@ -9,6 +9,8 @@ namespace temperbridge_nova {
 enum class ControlBoxModel : uint8_t {
     UNKNOWN = 0,
     MC232 = 1,
+    CU358 = 2,
+    MC120 = 3,
 };
 
 struct ControlBoxModelSignature {

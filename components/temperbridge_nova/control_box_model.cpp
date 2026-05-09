@@ -7,8 +7,13 @@ namespace temperbridge_nova {
 
 namespace {
 
-constexpr std::array<ControlBoxModelSignature, 1> CONTROL_BOX_MODEL_SIGNATURES{{
+// Status[0], Status[7], model
+constexpr std::array<ControlBoxModelSignature, 3> CONTROL_BOX_MODEL_SIGNATURES{{
     {37, 50, ControlBoxModel::MC232},
+
+    // TODO: not sure if better way to detect?
+    {32, 0, ControlBoxModel::CU358},
+    {24, 0, ControlBoxModel::MC120},
 }};
 
 }  // namespace
@@ -27,6 +32,10 @@ const char *control_box_model_to_string(ControlBoxModel model) {
     switch (model) {
     case ControlBoxModel::MC232:
         return "MC232";
+    case ControlBoxModel::CU358:
+        return "CU358";
+    case ControlBoxModel::MC120:
+        return "MC120";
     case ControlBoxModel::UNKNOWN: /* fallthrough */
     default:
         return "unknown";
