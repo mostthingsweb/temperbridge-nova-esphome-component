@@ -45,6 +45,7 @@ public:
     void set_sensor(SensorType *sensor) {
         this->_sensor = sensor;
     }
+
     SensorType *sensor() const {
         return this->_sensor;
     }

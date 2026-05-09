@@ -47,41 +47,53 @@ public:
     void set_rx_enable_pin(InternalGPIOPin *pin) {
         this->_rx_enable_pin = pin;
     }
+
     void set_board_id_pin(size_t index, InternalGPIOPin *pin);
 
     void set_board_id_sensor(sensor::Sensor *sensor) {
         this->_board_id_sensor = sensor;
     }
+
     void set_mfp_link_state_sensor(text_sensor::TextSensor *sensor) {
         this->_mfp_link_state_sensor = sensor;
     }
+
     void set_key_sensor(text_sensor::TextSensor *sensor) {
         this->_key_sensor = sensor;
     }
+
     void set_control_box_model_sensor(text_sensor::TextSensor *sensor) {
         this->_control_box_model_sensor.set_sensor(sensor);
     }
+
     void set_head_pulse_sensor(sensor::Sensor *sensor) {
         this->_head_pulse.set_sensor(sensor);
     }
+
     void set_legs_pulse_sensor(sensor::Sensor *sensor) {
         this->_legs_pulse.set_sensor(sensor);
     }
+
     void set_lumbar_pulse_sensor(sensor::Sensor *sensor) {
         this->_lumbar_pulse.set_sensor(sensor);
     }
+
     void set_status_0_sensor(sensor::Sensor *sensor) {
         this->_status_0.set_sensor(sensor);
     }
+
     void set_status_7_sensor(sensor::Sensor *sensor) {
         this->_status_7.set_sensor(sensor);
     }
+
     void set_head_cover(TemperBridgeNovaCover *cover) {
         this->_head_cover = cover;
     }
+
     void set_legs_cover(TemperBridgeNovaCover *cover) {
         this->_legs_cover = cover;
     }
+
     void set_lumbar_cover(TemperBridgeNovaCover *cover) {
         this->_lumbar_cover = cover;
     }

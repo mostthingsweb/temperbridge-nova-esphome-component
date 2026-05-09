@@ -31,9 +31,11 @@ public:
     void set_parent(TemperBridgeNovaComponent *parent) {
         this->_parent = parent;
     }
+
     void set_actuator(uint8_t actuator) {
         this->_actuator = static_cast<MfpActuator>(actuator);
     }
+
     void set_operation(cover::CoverOperation operation);
 
     cover::CoverTraits get_traits() override;
@@ -50,6 +52,7 @@ public:
     void set_parent(TemperBridgeNovaComponent *parent) {
         this->_parent = parent;
     }
+
     void set_command(uint8_t command) {
         this->_command = static_cast<MfpButtonCommand>(command);
     }

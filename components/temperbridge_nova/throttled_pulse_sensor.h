@@ -16,12 +16,14 @@ public:
     void set_sensor(sensor::Sensor *sensor) {
         this->_sensor = sensor;
     }
+
     sensor::Sensor *sensor() const {
         return this->_sensor;
     }
 
     void update(uint16_t value, uint32_t now_ms);
     void publish_pending(uint32_t now_ms);
+
     std::optional<float> velocity() const {
         return this->_velocity;
     }
