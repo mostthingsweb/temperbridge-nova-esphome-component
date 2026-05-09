@@ -58,6 +58,9 @@ public:
     void set_key_sensor(text_sensor::TextSensor *sensor) {
         this->_key_sensor = sensor;
     }
+    void set_control_box_model_sensor(text_sensor::TextSensor *sensor) {
+        this->_control_box_model_sensor.set_sensor(sensor);
+    }
     void set_head_pulse_sensor(sensor::Sensor *sensor) {
         this->_head_pulse.set_sensor(sensor);
     }
@@ -117,8 +120,9 @@ protected:
     void publish_movement_state_(MovementState state);
     text_sensor::TextSensor *_mfp_link_state_sensor{nullptr};
     text_sensor::TextSensor *_key_sensor{nullptr};
-    DistinctValueSensor _status_0{};
-    DistinctValueSensor _status_7{};
+    DistinctValueSensor<std::string> _control_box_model_sensor{};
+    DistinctValueSensor<uint8_t> _status_0{};
+    DistinctValueSensor<uint8_t> _status_7{};
     std::optional<uint32_t> _last_status_ms{};
     std::optional<uint32_t> _last_key{};
     ControlBoxModel _control_box_model{ControlBoxModel::UNKNOWN};

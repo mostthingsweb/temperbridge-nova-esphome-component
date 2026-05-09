@@ -16,6 +16,7 @@ AUTO_LOAD = ["button", "cover", "sensor", "text_sensor"]
 
 CONF_BOARD_ID = "board_id"
 CONF_BOARD_ID_PINS = "board_id_pins"
+CONF_CONTROL_BOX_MODEL = "control_box_model"
 CONF_FAVORITE_1 = "favorite_1"
 CONF_FAVORITE_2 = "favorite_2"
 CONF_FLAT = "flat"
@@ -79,6 +80,13 @@ CONFIG_SCHEMA = (
                     entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
                 ),
                 "MFP Key",
+            ),
+            cv.Optional(CONF_CONTROL_BOX_MODEL, default={}): _with_default_name(
+                text_sensor.text_sensor_schema(
+                    icon="mdi:chip",
+                    entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+                ),
+                "Control Box Model",
             ),
             cv.Optional(CONF_HEAD_PULSE, default={}): _with_default_name(
                 sensor.sensor_schema(
@@ -195,6 +203,9 @@ async def to_code(config):
 
     key_sensor = await text_sensor.new_text_sensor(config[CONF_KEY])
     cg.add(var.set_key_sensor(key_sensor))
+
+    control_box_model_sensor = await text_sensor.new_text_sensor(config[CONF_CONTROL_BOX_MODEL])
+    cg.add(var.set_control_box_model_sensor(control_box_model_sensor))
 
     head_pulse_sensor = await sensor.new_sensor(config[CONF_HEAD_PULSE])
     cg.add(var.set_head_pulse_sensor(head_pulse_sensor))

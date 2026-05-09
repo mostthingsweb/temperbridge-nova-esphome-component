@@ -91,6 +91,7 @@ void TemperBridgeNovaComponent::setup() {
     this->setup_board_id_();
     this->publish_link_state_(MfpLinkState::UNKNOWN);
     this->publish_key_(0);
+    this->_control_box_model_sensor.publish_state(control_box_model_to_string(this->_control_box_model));
     this->publish_movement_state_(MovementState::STOPPED);
 
     this->_next_movement_command_ms = millis();
@@ -112,6 +113,7 @@ void TemperBridgeNovaComponent::dump_config() {
     LOG_SENSOR("  ", "Board ID", this->_board_id_sensor);
     LOG_TEXT_SENSOR("  ", "MFP Link State", this->_mfp_link_state_sensor);
     LOG_TEXT_SENSOR("  ", "MFP Key", this->_key_sensor);
+    LOG_TEXT_SENSOR("  ", "Control Box Model", this->_control_box_model_sensor.sensor());
     LOG_SENSOR("  ", "Status[0]", this->_status_0.sensor());
     LOG_SENSOR("  ", "Status[7]", this->_status_7.sensor());
     LOG_SENSOR("  ", "Head Pulse", this->_head_pulse.sensor());

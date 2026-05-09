@@ -97,6 +97,7 @@ void TemperBridgeNovaComponent::process_status_packet_(const uint8_t *data, size
                  control_box_model_to_string(control_box_model));
         this->_control_box_model = control_box_model;
     }
+    this->_control_box_model_sensor.publish_state(control_box_model_to_string(this->_control_box_model));
 
     // Detects when user presses a button on the real remote control(s)
     const uint32_t key = packet.key();

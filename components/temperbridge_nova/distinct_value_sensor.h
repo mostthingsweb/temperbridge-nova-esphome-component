@@ -1,28 +1,68 @@
 #ifndef ESPHOME_TEMPERBRIDGE_NOVA_DISTINCT_VALUE_SENSOR_H
 #define ESPHOME_TEMPERBRIDGE_NOVA_DISTINCT_VALUE_SENSOR_H
 
+#include <cstdint>
 #include <optional>
+#include <string>
 
 #include "esphome/components/sensor/sensor.h"
+#include "esphome/components/text_sensor/text_sensor.h"
 
 namespace esphome {
 namespace temperbridge_nova {
 
-/// Small helper that only publishes to the sensor when the value is different
-class DistinctValueSensor {
+template<typename T> struct DistinctValueSensorTraits;
+
+template<> struct DistinctValueSensorTraits<uint8_t> {
+    using SensorType = sensor::Sensor;
+
+    static void publish_state(SensorType *sensor, uint8_t value) {
+        sensor->publish_state(value);
+    }
+};
+
+template<> struct DistinctValueSensorTraits<float> {
+    using SensorType = sensor::Sensor;
+
+    static void publish_state(SensorType *sensor, float value) {
+        sensor->publish_state(value);
+    }
+};
+
+template<> struct DistinctValueSensorTraits<std::string> {
+    using SensorType = text_sensor::TextSensor;
+
+    static void publish_state(SensorType *sensor, const std::string &value) {
+        sensor->publish_state(value);
+    }
+};
+
+/// Small helper that only publishes to the sensor when the value is different.
+template<typename T> class DistinctValueSensor {
 public:
-    void set_sensor(sensor::Sensor *sensor) {
+    using SensorType = typename DistinctValueSensorTraits<T>::SensorType;
+
+    void set_sensor(SensorType *sensor) {
         this->_sensor = sensor;
     }
-    sensor::Sensor *sensor() const {
+    SensorType *sensor() const {
         return this->_sensor;
     }
 
-    void publish_state(float value);
+    void publish_state(const T &value) {
+        if (this->_last_value.has_value() && *this->_last_value == value) {
+            return;
+        }
+
+        this->_last_value = value;
+        if (this->_sensor != nullptr) {
+            DistinctValueSensorTraits<T>::publish_state(this->_sensor, value);
+        }
+    }
 
 private:
-    sensor::Sensor *_sensor{nullptr};
-    std::optional<float> _last_value{};
+    SensorType *_sensor{nullptr};
+    std::optional<T> _last_value{};
 };
 
 }  // namespace temperbridge_nova
