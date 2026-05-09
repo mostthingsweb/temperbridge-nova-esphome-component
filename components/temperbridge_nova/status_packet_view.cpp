@@ -5,6 +5,8 @@ namespace temperbridge_nova {
 
 namespace {
 
+constexpr size_t STATUS_0_OFFSET = 0x00;
+constexpr size_t STATUS_7_OFFSET = 0x07;
 constexpr size_t KEY_OFFSET = 0x02;
 constexpr size_t HEAD_PULSE_OFFSET = 0x12;
 constexpr size_t LEGS_PULSE_OFFSET = 0x14;
@@ -18,6 +20,14 @@ StatusPacketView::StatusPacketView(const uint8_t *data, size_t length) : _data(d
 
 bool StatusPacketView::valid() const {
     return this->_data != nullptr && this->_length > LUMBAR_PULSE_HIGH_BYTE_OFFSET;
+}
+
+uint8_t StatusPacketView::status_0() const {
+    return this->_data[STATUS_0_OFFSET];
+}
+
+uint8_t StatusPacketView::status_7() const {
+    return this->_data[STATUS_7_OFFSET];
 }
 
 uint32_t StatusPacketView::key() const {

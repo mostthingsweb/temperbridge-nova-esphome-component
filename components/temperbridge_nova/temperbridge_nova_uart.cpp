@@ -86,6 +86,18 @@ void TemperBridgeNovaComponent::process_status_packet_(const uint8_t *data, size
     this->_last_status_ms = now;
     this->set_link_state_(MfpLinkState::ONLINE);
 
+    const uint8_t status_0 = packet.status_0();
+    const uint8_t status_7 = packet.status_7();
+    this->_status_0.publish_state(status_0);
+    this->_status_7.publish_state(status_7);
+
+    const ControlBoxModel control_box_model = lookup_control_box_model(status_0, status_7);
+    if (control_box_model != this->_control_box_model) {
+        ESP_LOGI(TAG, "Control box model changed: %s -> %s", control_box_model_to_string(this->_control_box_model),
+                 control_box_model_to_string(control_box_model));
+        this->_control_box_model = control_box_model;
+    }
+
     // Detects when user presses a button on the real remote control(s)
     const uint32_t key = packet.key();
     this->publish_key_(key);

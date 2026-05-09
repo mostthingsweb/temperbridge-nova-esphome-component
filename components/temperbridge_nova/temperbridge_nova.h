@@ -12,6 +12,8 @@
 #include "esphome/core/component.h"
 #include "esphome/core/gpio.h"
 
+#include "control_box_model.h"
+#include "distinct_value_sensor.h"
 #include "entities.h"
 #include "mfp_command_queue.h"
 #include "throttled_pulse_sensor.h"
@@ -65,6 +67,12 @@ public:
     void set_lumbar_pulse_sensor(sensor::Sensor *sensor) {
         this->_lumbar_pulse.set_sensor(sensor);
     }
+    void set_status_0_sensor(sensor::Sensor *sensor) {
+        this->_status_0.set_sensor(sensor);
+    }
+    void set_status_7_sensor(sensor::Sensor *sensor) {
+        this->_status_7.set_sensor(sensor);
+    }
     void set_head_cover(TemperBridgeNovaCover *cover) {
         this->_head_cover = cover;
     }
@@ -109,8 +117,11 @@ protected:
     void publish_movement_state_(MovementState state);
     text_sensor::TextSensor *_mfp_link_state_sensor{nullptr};
     text_sensor::TextSensor *_key_sensor{nullptr};
+    DistinctValueSensor _status_0{};
+    DistinctValueSensor _status_7{};
     std::optional<uint32_t> _last_status_ms{};
     std::optional<uint32_t> _last_key{};
+    ControlBoxModel _control_box_model{ControlBoxModel::UNKNOWN};
     MfpLinkState _link_state{MfpLinkState::UNKNOWN};
 
     /* Movement commands */

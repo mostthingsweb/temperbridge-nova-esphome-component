@@ -28,6 +28,8 @@ CONF_LUMBAR = "lumbar"
 CONF_LUMBAR_PULSE = "lumbar_pulse"
 CONF_RX_ENABLE_PIN = "rx_enable_pin"
 CONF_STOP = "stop"
+CONF_STATUS_0 = "status_0"
+CONF_STATUS_7 = "status_7"
 CONF_TV = "tv"
 CONF_ZERO_G = "zero_g"
 
@@ -101,6 +103,24 @@ CONFIG_SCHEMA = (
                     state_class=STATE_CLASS_MEASUREMENT,
                 ),
                 "Lumbar Pulse",
+            ),
+            cv.Optional(CONF_STATUS_0, default={}): _with_default_name(
+                sensor.sensor_schema(
+                    icon="mdi:code-brackets",
+                    accuracy_decimals=0,
+                    entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+                    state_class=STATE_CLASS_MEASUREMENT,
+                ),
+                "Status[0]",
+            ),
+            cv.Optional(CONF_STATUS_7, default={}): _with_default_name(
+                sensor.sensor_schema(
+                    icon="mdi:code-brackets",
+                    accuracy_decimals=0,
+                    entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+                    state_class=STATE_CLASS_MEASUREMENT,
+                ),
+                "Status[7]",
             ),
             cv.Optional(CONF_HEAD, default={}): _with_default_name(
                 cover.cover_schema(TemperBridgeNovaCover, icon="mdi:bed"),
@@ -184,6 +204,12 @@ async def to_code(config):
 
     lumbar_pulse_sensor = await sensor.new_sensor(config[CONF_LUMBAR_PULSE])
     cg.add(var.set_lumbar_pulse_sensor(lumbar_pulse_sensor))
+
+    status_0_sensor = await sensor.new_sensor(config[CONF_STATUS_0])
+    cg.add(var.set_status_0_sensor(status_0_sensor))
+
+    status_7_sensor = await sensor.new_sensor(config[CONF_STATUS_7])
+    cg.add(var.set_status_7_sensor(status_7_sensor))
 
     head_cover = await cover.new_cover(config[CONF_HEAD])
     cg.add(head_cover.set_parent(var))
