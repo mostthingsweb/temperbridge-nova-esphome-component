@@ -66,6 +66,10 @@ public:
         this->_control_box_model_sensor.set_sensor(sensor);
     }
 
+    void set_status_packet_capture_sensor(text_sensor::TextSensor *sensor) {
+        this->_status_packet_capture_sensor = sensor;
+    }
+
     void set_head_pulse_sensor(sensor::Sensor *sensor) {
         this->_head_pulse.set_sensor(sensor);
     }
@@ -101,6 +105,7 @@ public:
     void handle_cover_command(MfpActuator actuator, bool open);
     void handle_stop_command();
     void handle_button_command(MfpButtonCommand command);
+    void handle_status_packet_capture_command();
 
 protected:
     /* Board ID */
@@ -135,6 +140,12 @@ protected:
     DistinctValueSensor<std::string> _control_box_model_sensor{};
     DistinctValueSensor<uint8_t> _status_0{};
     DistinctValueSensor<uint8_t> _status_7{};
+    static constexpr size_t STATUS_PACKET_CAPTURE_COUNT = 10;
+    void start_status_packet_capture_();
+    void capture_status_packet_(const uint8_t *data, size_t length);
+    text_sensor::TextSensor *_status_packet_capture_sensor{nullptr};
+    size_t _status_packets_remaining{0};
+    size_t _status_packet_capture_index{0};
     std::optional<uint32_t> _last_status_ms{};
     std::optional<uint32_t> _last_key{};
     ControlBoxModel _control_box_model{ControlBoxModel::UNKNOWN};

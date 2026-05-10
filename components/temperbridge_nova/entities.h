@@ -64,6 +64,18 @@ protected:
     MfpButtonCommand _command{MfpButtonCommand::STOP};
 };
 
+class TemperBridgeNovaStatusPacketCaptureButton : public button::Button {
+public:
+    void set_parent(TemperBridgeNovaComponent *parent) {
+        this->_parent = parent;
+    }
+
+protected:
+    void press_action() override;
+
+    TemperBridgeNovaComponent *_parent{nullptr};
+};
+
 }  // namespace temperbridge_nova
 }  // namespace esphome
 

@@ -1,6 +1,8 @@
 #include "temperbridge_nova.h"
 
+#include <cstdio>
 #include <cstring>
+#include <string>
 
 #include "esphome/core/hal.h"
 #include "esphome/core/log.h"
@@ -24,6 +26,25 @@ uint8_t mfp_checksum(const uint8_t *data, size_t length) {
 
 bool is_status_packet(const uint8_t *data, size_t length) {
     return data != nullptr && length > 1 && data[1] == 0x07;
+}
+
+std::string format_packet_capture(size_t index, size_t total, const uint8_t *data, size_t length) {
+    char prefix[16];
+    std::snprintf(prefix, sizeof(prefix), "%u/%u: ", static_cast<unsigned>(index), static_cast<unsigned>(total));
+
+    std::string payload;
+    payload += prefix;
+
+    for (size_t i = 0; i < length; ++i) {
+        char byte_payload[sizeof("0x00")];
+        std::snprintf(byte_payload, sizeof(byte_payload), "0x%02X", data[i]);
+        payload += byte_payload;
+        if (i + 1 < length) {
+            payload += ' ';
+        }
+    }
+
+    return payload;
 }
 
 }  // namespace
@@ -85,6 +106,7 @@ void TemperBridgeNovaComponent::process_status_packet_(const uint8_t *data, size
     const uint32_t now = millis();
     this->_last_status_ms = now;
     this->set_link_state_(MfpLinkState::ONLINE);
+    this->capture_status_packet_(data, length);
 
     const uint8_t status_0 = packet.status_0();
     const uint8_t status_7 = packet.status_7();
@@ -131,6 +153,24 @@ void TemperBridgeNovaComponent::enqueue_uart_command_(const MfpCommandBytes &com
 
 void TemperBridgeNovaComponent::clear_uart_command_queue_() {
     this->_command_queue.clear();
+}
+
+void TemperBridgeNovaComponent::capture_status_packet_(const uint8_t *data, size_t length) {
+    if (this->_status_packets_remaining == 0) {
+        return;
+    }
+
+    ++this->_status_packet_capture_index;
+    --this->_status_packets_remaining;
+
+    if (this->_status_packet_capture_sensor != nullptr) {
+        this->_status_packet_capture_sensor->publish_state(
+            format_packet_capture(this->_status_packet_capture_index, STATUS_PACKET_CAPTURE_COUNT, data, length));
+    }
+
+    if (this->_status_packets_remaining == 0) {
+        ESP_LOGI(TAG, "Finished MFP status packet capture");
+    }
 }
 
 void TemperBridgeNovaComponent::write_next_command_() {

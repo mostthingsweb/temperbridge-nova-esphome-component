@@ -46,5 +46,12 @@ void TemperBridgeNovaButton::press_action() {
     this->_parent->handle_button_command(this->_command);
 }
 
+void TemperBridgeNovaStatusPacketCaptureButton::press_action() {
+    if (this->_parent == nullptr) {
+        return;
+    }
+    this->_parent->handle_status_packet_capture_command();
+}
+
 }  // namespace temperbridge_nova
 }  // namespace esphome

@@ -114,6 +114,7 @@ void TemperBridgeNovaComponent::dump_config() {
     LOG_TEXT_SENSOR("  ", "MFP Link State", this->_mfp_link_state_sensor);
     LOG_TEXT_SENSOR("  ", "MFP Key", this->_key_sensor);
     LOG_TEXT_SENSOR("  ", "Control Box Model", this->_control_box_model_sensor.sensor());
+    LOG_TEXT_SENSOR("  ", "Status Packet Capture", this->_status_packet_capture_sensor);
     LOG_SENSOR("  ", "Status[0]", this->_status_0.sensor());
     LOG_SENSOR("  ", "Status[7]", this->_status_7.sensor());
     LOG_SENSOR("  ", "Head Pulse", this->_head_pulse.sensor());
@@ -177,6 +178,10 @@ void TemperBridgeNovaComponent::handle_button_command(MfpButtonCommand command) 
         this->handle_button_command_(mfp_commands::FAVORITE_2, "favorite 2");
         break;
     }
+}
+
+void TemperBridgeNovaComponent::handle_status_packet_capture_command() {
+    this->start_status_packet_capture_();
 }
 
 void TemperBridgeNovaComponent::setup_board_id_() {
@@ -350,6 +355,16 @@ void TemperBridgeNovaComponent::handle_button_command_(const MfpCommandBytes &co
         this->enqueue_uart_command_(command);
     }
     this->publish_movement_state_(MovementState::STOPPED);
+}
+
+void TemperBridgeNovaComponent::start_status_packet_capture_() {
+    this->_status_packets_remaining = STATUS_PACKET_CAPTURE_COUNT;
+    this->_status_packet_capture_index = 0;
+
+    ESP_LOGI(TAG, "Capturing next %u MFP status packets", static_cast<unsigned>(STATUS_PACKET_CAPTURE_COUNT));
+    if (this->_status_packet_capture_sensor != nullptr) {
+        this->_status_packet_capture_sensor->publish_state("waiting for status packets");
+    }
 }
 
 void TemperBridgeNovaComponent::enqueue_current_movement_command_() {

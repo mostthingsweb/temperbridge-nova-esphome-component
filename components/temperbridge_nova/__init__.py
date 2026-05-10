@@ -16,6 +16,7 @@ AUTO_LOAD = ["button", "cover", "sensor", "text_sensor"]
 
 CONF_BOARD_ID = "board_id"
 CONF_BOARD_ID_PINS = "board_id_pins"
+CONF_CAPTURE_STATUS_PACKETS = "capture_status_packets"
 CONF_CONTROL_BOX_MODEL = "control_box_model"
 CONF_FAVORITE_1 = "favorite_1"
 CONF_FAVORITE_2 = "favorite_2"
@@ -31,6 +32,7 @@ CONF_RX_ENABLE_PIN = "rx_enable_pin"
 CONF_STOP = "stop"
 CONF_STATUS_0 = "status_0"
 CONF_STATUS_7 = "status_7"
+CONF_STATUS_PACKET_CAPTURE = "status_packet_capture"
 CONF_TV = "tv"
 CONF_ZERO_G = "zero_g"
 
@@ -43,6 +45,9 @@ TemperBridgeNovaComponent = temperbridge_nova_ns.class_(
 )
 TemperBridgeNovaCover = temperbridge_nova_ns.class_("TemperBridgeNovaCover", cover.Cover)
 TemperBridgeNovaButton = temperbridge_nova_ns.class_("TemperBridgeNovaButton", button.Button)
+TemperBridgeNovaStatusPacketCaptureButton = temperbridge_nova_ns.class_(
+    "TemperBridgeNovaStatusPacketCaptureButton", button.Button
+)
 
 
 def _with_default_name(schema, name):
@@ -130,6 +135,13 @@ CONFIG_SCHEMA = (
                 ),
                 "Status[7]",
             ),
+            cv.Optional(CONF_STATUS_PACKET_CAPTURE, default={}): _with_default_name(
+                text_sensor.text_sensor_schema(
+                    icon="mdi:code-brackets",
+                    entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+                ),
+                "Status Packet Capture",
+            ),
             cv.Optional(CONF_HEAD, default={}): _with_default_name(
                 cover.cover_schema(TemperBridgeNovaCover, icon="mdi:bed"),
                 "Head",
@@ -165,6 +177,14 @@ CONFIG_SCHEMA = (
             cv.Optional(CONF_FAVORITE_2, default={}): _with_default_name(
                 button.button_schema(TemperBridgeNovaButton, icon="mdi:numeric-2-box"),
                 "Favorite 2",
+            ),
+            cv.Optional(CONF_CAPTURE_STATUS_PACKETS, default={}): _with_default_name(
+                button.button_schema(
+                    TemperBridgeNovaStatusPacketCaptureButton,
+                    icon="mdi:database-search",
+                    entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+                ),
+                "Capture Status Packets",
             ),
         }
     )
@@ -222,6 +242,9 @@ async def to_code(config):
     status_7_sensor = await sensor.new_sensor(config[CONF_STATUS_7])
     cg.add(var.set_status_7_sensor(status_7_sensor))
 
+    status_packet_capture_sensor = await text_sensor.new_text_sensor(config[CONF_STATUS_PACKET_CAPTURE])
+    cg.add(var.set_status_packet_capture_sensor(status_packet_capture_sensor))
+
     head_cover = await cover.new_cover(config[CONF_HEAD])
     cg.add(head_cover.set_parent(var))
     cg.add(head_cover.set_actuator(0))
@@ -260,3 +283,6 @@ async def to_code(config):
     favorite_2_button = await button.new_button(config[CONF_FAVORITE_2])
     cg.add(favorite_2_button.set_parent(var))
     cg.add(favorite_2_button.set_command(5))
+
+    capture_status_packets_button = await button.new_button(config[CONF_CAPTURE_STATUS_PACKETS])
+    cg.add(capture_status_packets_button.set_parent(var))
