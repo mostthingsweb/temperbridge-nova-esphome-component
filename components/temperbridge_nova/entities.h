@@ -6,6 +6,7 @@
 #include "esphome/components/button/button.h"
 #include "esphome/components/cover/cover.h"
 #include "esphome/components/switch/switch.h"
+#include "esphome/core/helpers.h"
 
 namespace esphome {
 namespace temperbridge_nova {
@@ -27,12 +28,8 @@ enum class MfpButtonCommand : uint8_t {
     FAVORITE_2 = 5,
 };
 
-class TemperBridgeNovaCover : public cover::Cover {
+class TemperBridgeNovaCover : public cover::Cover, public Parented<TemperBridgeNovaComponent> {
 public:
-    void set_parent(TemperBridgeNovaComponent *parent) {
-        this->_parent = parent;
-    }
-
     void set_actuator(uint8_t actuator) {
         this->_actuator = static_cast<MfpActuator>(actuator);
     }
@@ -44,16 +41,11 @@ public:
 protected:
     void control(const cover::CoverCall &call) override;
 
-    TemperBridgeNovaComponent *_parent{nullptr};
     MfpActuator _actuator{MfpActuator::HEAD};
 };
 
-class TemperBridgeNovaButton : public button::Button {
+class TemperBridgeNovaButton : public button::Button, public Parented<TemperBridgeNovaComponent> {
 public:
-    void set_parent(TemperBridgeNovaComponent *parent) {
-        this->_parent = parent;
-    }
-
     void set_command(uint8_t command) {
         this->_command = static_cast<MfpButtonCommand>(command);
     }
@@ -61,32 +53,17 @@ public:
 protected:
     void press_action() override;
 
-    TemperBridgeNovaComponent *_parent{nullptr};
     MfpButtonCommand _command{MfpButtonCommand::STOP};
 };
 
-class TemperBridgeNovaStatusPacketCaptureButton : public button::Button {
-public:
-    void set_parent(TemperBridgeNovaComponent *parent) {
-        this->_parent = parent;
-    }
-
+class TemperBridgeNovaStatusPacketCaptureButton : public button::Button, public Parented<TemperBridgeNovaComponent> {
 protected:
     void press_action() override;
-
-    TemperBridgeNovaComponent *_parent{nullptr};
 };
 
-class TemperBridgeNovaStatusPacketLogSwitch : public switch_::Switch {
-public:
-    void set_parent(TemperBridgeNovaComponent *parent) {
-        this->_parent = parent;
-    }
-
+class TemperBridgeNovaStatusPacketLogSwitch : public switch_::Switch, public Parented<TemperBridgeNovaComponent> {
 protected:
     void write_state(bool state) override;
-
-    TemperBridgeNovaComponent *_parent{nullptr};
 };
 
 }  // namespace temperbridge_nova

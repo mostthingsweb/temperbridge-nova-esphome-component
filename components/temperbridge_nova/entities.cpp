@@ -18,12 +18,12 @@ cover::CoverTraits TemperBridgeNovaCover::get_traits() {
 }
 
 void TemperBridgeNovaCover::control(const cover::CoverCall &call) {
-    if (this->_parent == nullptr) {
+    if (this->parent_ == nullptr) {
         return;
     }
 
     if (call.get_stop()) {
-        this->_parent->handle_stop_command();
+        this->parent_->handle_stop_command();
         return;
     }
 
@@ -33,31 +33,31 @@ void TemperBridgeNovaCover::control(const cover::CoverCall &call) {
     }
 
     if (*position == cover::COVER_OPEN) {
-        this->_parent->handle_cover_command(this->_actuator, true);
+        this->parent_->handle_cover_command(this->_actuator, true);
     } else if (*position == cover::COVER_CLOSED) {
-        this->_parent->handle_cover_command(this->_actuator, false);
+        this->parent_->handle_cover_command(this->_actuator, false);
     }
 }
 
 void TemperBridgeNovaButton::press_action() {
-    if (this->_parent == nullptr) {
+    if (this->parent_ == nullptr) {
         return;
     }
-    this->_parent->handle_button_command(this->_command);
+    this->parent_->handle_button_command(this->_command);
 }
 
 void TemperBridgeNovaStatusPacketCaptureButton::press_action() {
-    if (this->_parent == nullptr) {
+    if (this->parent_ == nullptr) {
         return;
     }
-    this->_parent->handle_status_packet_capture_command();
+    this->parent_->handle_status_packet_capture_command();
 }
 
 void TemperBridgeNovaStatusPacketLogSwitch::write_state(bool state) {
-    if (this->_parent == nullptr) {
+    if (this->parent_ == nullptr) {
         return;
     }
-    this->_parent->set_status_packet_logging_enabled(state);
+    this->parent_->set_status_packet_logging_enabled(state);
     this->publish_state(state);
 }
 
