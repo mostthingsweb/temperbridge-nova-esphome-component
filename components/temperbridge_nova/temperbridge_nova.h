@@ -115,7 +115,8 @@ protected:
     sensor::Sensor *_board_id_sensor{nullptr};
 
     /* UART */
-    static constexpr size_t RX_BUFFER_SIZE = 1024;
+    // TODO: this is probably way more than it needs to be
+    static constexpr size_t RX_BUFFER_SIZE = 128;
     static constexpr uint32_t STATUS_OFFLINE_TIMEOUT_MS = 2000;
     static constexpr uint32_t MAX_QUEUED_COMMAND_AGE_MS = 250;
     void process_uart_();
