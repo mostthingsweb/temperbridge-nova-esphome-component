@@ -1,8 +1,63 @@
-# this configuration file compiles the test device setup.
+# this configuration file compiles the TemperBridge Nova firmware.
 # use 'esphome compile temperbridge_nova.yaml' to build.
 
-packages:
-  device: !include device.yaml
+esphome:
+  name: temperbridge_nova
+  build_path: build/temperbridge_nova
+
+esp32:
+  variant: esp32s3
+  framework:
+    type: esp-idf
+
+logger:
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+
+binary_sensor:
+  - platform: gpio
+    id: improv_authorizer
+    internal: true
+    pin:
+      number: GPIO0
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+
+esp32_improv:
+  authorizer: improv_authorizer
+
+uart:
+  id: mfp_uart
+  tx_pin: GPIO13
+  rx_pin: GPIO12
+  flow_control_pin:
+    number: GPIO11
+    inverted: true
+  baud_rate: 38400
+  parity: EVEN
+  stop_bits: 1
+  data_bits: 8
+  rx_buffer_size: 2048
+  rx_timeout: 10
+
+external_components:
+  - source:
+      type: local
+      path: components
+    components:
+      - temperbridge_nova
+    refresh: always
+
+temperbridge_nova:
+  id: temperbridge_nova_1
+  uart_id: mfp_uart
 
 text:
   - platform: template
