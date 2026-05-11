@@ -184,6 +184,10 @@ void TemperBridgeNovaComponent::handle_status_packet_capture_command() {
     this->start_status_packet_capture_();
 }
 
+void TemperBridgeNovaComponent::set_status_packet_logging_enabled(bool enabled) {
+    this->_status_packet_logging_enabled = enabled;
+}
+
 void TemperBridgeNovaComponent::setup_board_id_() {
     for (auto *pin : this->_board_id_pins) {
         if (pin != nullptr) {

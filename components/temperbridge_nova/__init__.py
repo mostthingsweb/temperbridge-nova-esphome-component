@@ -1,5 +1,5 @@
 import esphome.codegen as cg
-from esphome.components import button, cover, sensor, text_sensor, uart
+from esphome.components import button, cover, sensor, switch, text_sensor, uart
 import esphome.config_validation as cv
 from esphome.const import (
     CONF_KEY,
@@ -12,7 +12,7 @@ from esphome.const import (
 from esphome import pins
 
 DEPENDENCIES = ["uart"]
-AUTO_LOAD = ["button", "cover", "sensor", "text_sensor"]
+AUTO_LOAD = ["button", "cover", "sensor", "switch", "text_sensor"]
 
 CONF_BOARD_ID = "board_id"
 CONF_BOARD_ID_PINS = "board_id_pins"
@@ -26,6 +26,7 @@ CONF_HEAD_PULSE = "head_pulse"
 CONF_LEGS = "legs"
 CONF_LEGS_PULSE = "legs_pulse"
 CONF_LINK_STATE = "link_state"
+CONF_LOG_STATUS_PACKETS = "log_status_packets"
 CONF_LUMBAR = "lumbar"
 CONF_LUMBAR_PULSE = "lumbar_pulse"
 CONF_RX_ENABLE_PIN = "rx_enable_pin"
@@ -47,6 +48,9 @@ TemperBridgeNovaCover = temperbridge_nova_ns.class_("TemperBridgeNovaCover", cov
 TemperBridgeNovaButton = temperbridge_nova_ns.class_("TemperBridgeNovaButton", button.Button)
 TemperBridgeNovaStatusPacketCaptureButton = temperbridge_nova_ns.class_(
     "TemperBridgeNovaStatusPacketCaptureButton", button.Button
+)
+TemperBridgeNovaStatusPacketLogSwitch = temperbridge_nova_ns.class_(
+    "TemperBridgeNovaStatusPacketLogSwitch", switch.Switch
 )
 
 
@@ -186,6 +190,15 @@ CONFIG_SCHEMA = (
                 ),
                 "Capture Status Packets",
             ),
+            cv.Optional(CONF_LOG_STATUS_PACKETS, default={}): _with_default_name(
+                switch.switch_schema(
+                    TemperBridgeNovaStatusPacketLogSwitch,
+                    icon="mdi:console-line",
+                    entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+                    default_restore_mode="ALWAYS_OFF",
+                ),
+                "Log Status Packets",
+            ),
         }
     )
     .extend(cv.COMPONENT_SCHEMA)
@@ -286,3 +299,6 @@ async def to_code(config):
 
     capture_status_packets_button = await button.new_button(config[CONF_CAPTURE_STATUS_PACKETS])
     cg.add(capture_status_packets_button.set_parent(var))
+
+    log_status_packets_switch = await switch.new_switch(config[CONF_LOG_STATUS_PACKETS])
+    cg.add(log_status_packets_switch.set_parent(var))

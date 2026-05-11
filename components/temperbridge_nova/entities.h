@@ -5,6 +5,7 @@
 
 #include "esphome/components/button/button.h"
 #include "esphome/components/cover/cover.h"
+#include "esphome/components/switch/switch.h"
 
 namespace esphome {
 namespace temperbridge_nova {
@@ -72,6 +73,18 @@ public:
 
 protected:
     void press_action() override;
+
+    TemperBridgeNovaComponent *_parent{nullptr};
+};
+
+class TemperBridgeNovaStatusPacketLogSwitch : public switch_::Switch {
+public:
+    void set_parent(TemperBridgeNovaComponent *parent) {
+        this->_parent = parent;
+    }
+
+protected:
+    void write_state(bool state) override;
 
     TemperBridgeNovaComponent *_parent{nullptr};
 };

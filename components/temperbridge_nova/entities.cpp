@@ -53,5 +53,13 @@ void TemperBridgeNovaStatusPacketCaptureButton::press_action() {
     this->_parent->handle_status_packet_capture_command();
 }
 
+void TemperBridgeNovaStatusPacketLogSwitch::write_state(bool state) {
+    if (this->_parent == nullptr) {
+        return;
+    }
+    this->_parent->set_status_packet_logging_enabled(state);
+    this->publish_state(state);
+}
+
 }  // namespace temperbridge_nova
 }  // namespace esphome

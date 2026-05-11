@@ -106,6 +106,7 @@ public:
     void handle_stop_command();
     void handle_button_command(MfpButtonCommand command);
     void handle_status_packet_capture_command();
+    void set_status_packet_logging_enabled(bool enabled);
 
 protected:
     /* Board ID */
@@ -143,7 +144,11 @@ protected:
     static constexpr size_t STATUS_PACKET_CAPTURE_COUNT = 10;
     void start_status_packet_capture_();
     void capture_status_packet_(const uint8_t *data, size_t length);
+    void log_status_packet_(const uint8_t *data, size_t length);
     text_sensor::TextSensor *_status_packet_capture_sensor{nullptr};
+    bool _status_packet_logging_enabled{false};
+    std::array<uint8_t, RX_BUFFER_SIZE> _last_logged_status_packet{};
+    std::optional<size_t> _last_logged_status_packet_length{};
     size_t _status_packets_remaining{0};
     size_t _status_packet_capture_index{0};
     std::optional<uint32_t> _last_status_ms{};

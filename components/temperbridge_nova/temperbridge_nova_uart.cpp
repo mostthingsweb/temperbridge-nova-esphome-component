@@ -28,13 +28,8 @@ bool is_status_packet(const uint8_t *data, size_t length) {
     return data != nullptr && length > 1 && data[1] == 0x07;
 }
 
-std::string format_packet_capture(size_t index, size_t total, const uint8_t *data, size_t length) {
-    char prefix[16];
-    std::snprintf(prefix, sizeof(prefix), "%u/%u: ", static_cast<unsigned>(index), static_cast<unsigned>(total));
-
+std::string format_packet_bytes(const uint8_t *data, size_t length) {
     std::string payload;
-    payload += prefix;
-
     for (size_t i = 0; i < length; ++i) {
         char byte_payload[sizeof("0x00")];
         std::snprintf(byte_payload, sizeof(byte_payload), "0x%02X", data[i]);
@@ -44,6 +39,16 @@ std::string format_packet_capture(size_t index, size_t total, const uint8_t *dat
         }
     }
 
+    return payload;
+}
+
+std::string format_packet_capture(size_t index, size_t total, const uint8_t *data, size_t length) {
+    char prefix[16];
+    std::snprintf(prefix, sizeof(prefix), "%u/%u: ", static_cast<unsigned>(index), static_cast<unsigned>(total));
+
+    std::string payload;
+    payload += prefix;
+    payload += format_packet_bytes(data, length);
     return payload;
 }
 
@@ -107,6 +112,7 @@ void TemperBridgeNovaComponent::process_status_packet_(const uint8_t *data, size
     this->_last_status_ms = now;
     this->set_link_state_(MfpLinkState::ONLINE);
     this->capture_status_packet_(data, length);
+    this->log_status_packet_(data, length);
 
     const uint8_t status_0 = packet.status_0();
     const uint8_t status_7 = packet.status_7();
@@ -171,6 +177,21 @@ void TemperBridgeNovaComponent::capture_status_packet_(const uint8_t *data, size
     if (this->_status_packets_remaining == 0) {
         ESP_LOGI(TAG, "Finished MFP status packet capture");
     }
+}
+
+void TemperBridgeNovaComponent::log_status_packet_(const uint8_t *data, size_t length) {
+    if (!this->_status_packet_logging_enabled) {
+        return;
+    }
+
+    if (this->_last_logged_status_packet_length.has_value() && *this->_last_logged_status_packet_length == length &&
+        std::memcmp(this->_last_logged_status_packet.data(), data, length) == 0) {
+        return;
+    }
+
+    std::memcpy(this->_last_logged_status_packet.data(), data, length);
+    this->_last_logged_status_packet_length = length;
+    ESP_LOGI(TAG, "MFP status packet: %s", format_packet_bytes(data, length).c_str());
 }
 
 void TemperBridgeNovaComponent::write_next_command_() {
