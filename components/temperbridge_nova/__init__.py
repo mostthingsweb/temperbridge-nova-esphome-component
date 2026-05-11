@@ -1,3 +1,4 @@
+from esphome import automation
 import esphome.codegen as cg
 from esphome.components import button, cover, sensor, switch, text_sensor, uart
 import esphome.config_validation as cv
@@ -21,6 +22,7 @@ CONF_CONTROL_BOX_MODEL = "control_box_model"
 CONF_FAVORITE_1 = "favorite_1"
 CONF_FAVORITE_2 = "favorite_2"
 CONF_FLAT = "flat"
+CONF_KEY_CODE = "key_code"
 CONF_HEAD = "head"
 CONF_HEAD_PULSE = "head_pulse"
 CONF_LEGS = "legs"
@@ -51,6 +53,9 @@ TemperBridgeNovaStatusPacketCaptureButton = temperbridge_nova_ns.class_(
 )
 TemperBridgeNovaStatusPacketLogSwitch = temperbridge_nova_ns.class_(
     "TemperBridgeNovaStatusPacketLogSwitch", switch.Switch
+)
+TemperBridgeNovaSendKeyAction = temperbridge_nova_ns.class_(
+    "TemperBridgeNovaSendKeyAction", automation.Action
 )
 
 
@@ -302,3 +307,32 @@ async def to_code(config):
 
     log_status_packets_switch = await switch.new_switch(config[CONF_LOG_STATUS_PACKETS])
     cg.add(log_status_packets_switch.set_parent(var))
+
+
+def validate_key_code(value):
+    value = cv.string_strict(value)
+    if len(value) != 8:
+        raise cv.Invalid("MFP key code must be exactly 8 hex characters")
+    for char in value:
+        if char not in "0123456789abcdefABCDEF":
+            raise cv.Invalid("MFP key code must contain only hex characters")
+    return value
+
+
+@automation.register_action(
+    "temperbridge_nova.send_key",
+    TemperBridgeNovaSendKeyAction,
+    cv.Schema(
+        {
+            cv.GenerateID(): cv.use_id(TemperBridgeNovaComponent),
+            cv.Required(CONF_KEY_CODE): cv.templatable(validate_key_code),
+        }
+    ),
+    synchronous=True,
+)
+async def send_key_to_code(config, action_id, template_arg, args):
+    var = cg.new_Pvariable(action_id, template_arg)
+    await cg.register_parented(var, config[CONF_ID])
+    key_code = await cg.templatable(config[CONF_KEY_CODE], args, cg.std_string)
+    cg.add(var.set_key_code(key_code))
+    return var

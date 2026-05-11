@@ -1,6 +1,8 @@
 #include "temperbridge_nova.h"
 
+#include <cstdint>
 #include <cstdio>
+#include <string>
 
 #include "esphome/components/cover/cover.h"
 #include "esphome/core/hal.h"
@@ -182,6 +184,10 @@ void TemperBridgeNovaComponent::handle_button_command(MfpButtonCommand command) 
 
 void TemperBridgeNovaComponent::handle_status_packet_capture_command() {
     this->start_status_packet_capture_();
+}
+
+void TemperBridgeNovaComponent::send_custom_key_code(const MfpCommandBytes &command) {
+    this->handle_button_command_(command, "custom key");
 }
 
 void TemperBridgeNovaComponent::set_status_packet_logging_enabled(bool enabled) {

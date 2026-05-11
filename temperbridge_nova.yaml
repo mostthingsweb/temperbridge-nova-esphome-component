@@ -3,3 +3,26 @@
 
 packages:
   device: !include device.yaml
+
+text:
+  - platform: template
+    id: custom_mfp_key_code
+    name: Custom MFP Key Code
+    icon: mdi:key-change
+    entity_category: diagnostic
+    mode: TEXT
+    min_length: 8
+    max_length: 8
+    pattern: "[0-9A-Fa-f]{8}"
+    optimistic: true
+    restore_value: true
+
+button:
+  - platform: template
+    name: Send Custom MFP Key
+    icon: mdi:send
+    entity_category: diagnostic
+    on_press:
+      - temperbridge_nova.send_key:
+          id: temperbridge_nova_1
+          key_code: !lambda "return id(custom_mfp_key_code).state;"

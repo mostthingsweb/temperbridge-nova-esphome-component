@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <string>
 
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
@@ -106,6 +107,7 @@ public:
     void handle_stop_command();
     void handle_button_command(MfpButtonCommand command);
     void handle_status_packet_capture_command();
+    void send_custom_key_code(const MfpCommandBytes &command);
     void set_status_packet_logging_enabled(bool enabled);
 
 protected:
