@@ -16,6 +16,7 @@ public:
     /// Field 0x0, packet length (minus 3)
     uint8_t status_0() const;
     /// Field 0x7, which seems to be harcoded and distinct between control boxes
+    /// at least when combined with field 0x0.
     uint8_t status_7() const;
     /// Key code currently being pressed by user, or 0
     uint32_t key() const;
