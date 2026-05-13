@@ -179,6 +179,21 @@ void TemperBridgeNovaComponent::handle_button_command(MfpButtonCommand command) 
     case MfpButtonCommand::FAVORITE_2:
         this->handle_button_command_(mfp_commands::FAVORITE_2, "favorite 2");
         break;
+    case MfpButtonCommand::ANTI_SNORE:
+        this->handle_button_command_(mfp_commands::ANTI_SNORE, "anti-snore");
+        break;
+    case MfpButtonCommand::TOGGLE_LIGHTS:
+        this->handle_button_command_(mfp_commands::TOGGLE_LIGHTS, "toggle lights");
+        break;
+    case MfpButtonCommand::MASSAGE_WAVE_MODE:
+        this->handle_button_command_(mfp_commands::MASSAGE_WAVE_MODE, "massage wave mode");
+        break;
+    case MfpButtonCommand::HEAD_ZONE_MASSAGE:
+        this->handle_button_command_(mfp_commands::HEAD_ZONE_MASSAGE, "head zone massage");
+        break;
+    case MfpButtonCommand::FOOT_ZONE_MASSAGE:
+        this->handle_button_command_(mfp_commands::FOOT_ZONE_MASSAGE, "foot zone massage");
+        break;
     }
 }
 

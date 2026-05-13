@@ -15,6 +15,7 @@ from esphome import pins
 DEPENDENCIES = ["uart"]
 AUTO_LOAD = ["button", "cover", "sensor", "switch", "text_sensor"]
 
+CONF_ANTI_SNORE = "anti_snore"
 CONF_BOARD_ID = "board_id"
 CONF_BOARD_ID_PINS = "board_id_pins"
 CONF_CAPTURE_STATUS_PACKETS = "capture_status_packets"
@@ -22,20 +23,24 @@ CONF_CONTROL_BOX_MODEL = "control_box_model"
 CONF_FAVORITE_1 = "favorite_1"
 CONF_FAVORITE_2 = "favorite_2"
 CONF_FLAT = "flat"
+CONF_FOOT_ZONE_MASSAGE = "foot_zone_massage"
 CONF_KEY_CODE = "key_code"
 CONF_HEAD = "head"
 CONF_HEAD_PULSE = "head_pulse"
+CONF_HEAD_ZONE_MASSAGE = "head_zone_massage"
 CONF_LEGS = "legs"
 CONF_LEGS_PULSE = "legs_pulse"
 CONF_LINK_STATE = "link_state"
 CONF_LOG_STATUS_PACKETS = "log_status_packets"
 CONF_LUMBAR = "lumbar"
 CONF_LUMBAR_PULSE = "lumbar_pulse"
+CONF_MASSAGE_WAVE_MODE = "massage_wave_mode"
 CONF_RX_ENABLE_PIN = "rx_enable_pin"
 CONF_STOP = "stop"
 CONF_STATUS_0 = "status_0"
 CONF_STATUS_7 = "status_7"
 CONF_STATUS_PACKET_CAPTURE = "status_packet_capture"
+CONF_TOGGLE_LIGHTS = "toggle_lights"
 CONF_TV = "tv"
 CONF_ZERO_G = "zero_g"
 
@@ -189,6 +194,26 @@ CONFIG_SCHEMA = (
                 button.button_schema(TemperBridgeNovaButton, icon="mdi:numeric-2-box"),
                 "Favorite 2",
             ),
+            cv.Optional(CONF_ANTI_SNORE, default={}): _with_default_name(
+                button.button_schema(TemperBridgeNovaButton, icon="mdi:bed"),
+                "Anti-Snore",
+            ),
+            cv.Optional(CONF_TOGGLE_LIGHTS, default={}): _with_default_name(
+                button.button_schema(TemperBridgeNovaButton, icon="mdi:lightbulb"),
+                "Toggle Lights",
+            ),
+            cv.Optional(CONF_MASSAGE_WAVE_MODE, default={}): _with_default_name(
+                button.button_schema(TemperBridgeNovaButton, icon="mdi:waves"),
+                "Massage Wave Mode",
+            ),
+            cv.Optional(CONF_HEAD_ZONE_MASSAGE, default={}): _with_default_name(
+                button.button_schema(TemperBridgeNovaButton, icon="mdi:vibrate"),
+                "Head Zone Massage",
+            ),
+            cv.Optional(CONF_FOOT_ZONE_MASSAGE, default={}): _with_default_name(
+                button.button_schema(TemperBridgeNovaButton, icon="mdi:vibrate"),
+                "Foot Zone Massage",
+            ),
             cv.Optional(CONF_CAPTURE_STATUS_PACKETS, default={}): _with_default_name(
                 button.button_schema(
                     TemperBridgeNovaStatusPacketCaptureButton,
@@ -303,6 +328,26 @@ async def to_code(config):
     favorite_2_button = await button.new_button(config[CONF_FAVORITE_2])
     cg.add(favorite_2_button.set_parent(var))
     cg.add(favorite_2_button.set_command(MfpButtonCommand.FAVORITE_2))
+
+    anti_snore_button = await button.new_button(config[CONF_ANTI_SNORE])
+    cg.add(anti_snore_button.set_parent(var))
+    cg.add(anti_snore_button.set_command(MfpButtonCommand.ANTI_SNORE))
+
+    lights_button = await button.new_button(config[CONF_TOGGLE_LIGHTS])
+    cg.add(lights_button.set_parent(var))
+    cg.add(lights_button.set_command(MfpButtonCommand.TOGGLE_LIGHTS))
+
+    massage_wave_mode_button = await button.new_button(config[CONF_MASSAGE_WAVE_MODE])
+    cg.add(massage_wave_mode_button.set_parent(var))
+    cg.add(massage_wave_mode_button.set_command(MfpButtonCommand.MASSAGE_WAVE_MODE))
+
+    head_zone_massage_button = await button.new_button(config[CONF_HEAD_ZONE_MASSAGE])
+    cg.add(head_zone_massage_button.set_parent(var))
+    cg.add(head_zone_massage_button.set_command(MfpButtonCommand.HEAD_ZONE_MASSAGE))
+
+    foot_zone_massage_button = await button.new_button(config[CONF_FOOT_ZONE_MASSAGE])
+    cg.add(foot_zone_massage_button.set_parent(var))
+    cg.add(foot_zone_massage_button.set_command(MfpButtonCommand.FOOT_ZONE_MASSAGE))
 
     capture_status_packets_button = await button.new_button(config[CONF_CAPTURE_STATUS_PACKETS])
     cg.add(capture_status_packets_button.set_parent(var))

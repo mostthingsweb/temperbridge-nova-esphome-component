@@ -26,6 +26,11 @@ enum class MfpButtonCommand : uint8_t {
     TV = 3,
     FAVORITE_1 = 4,
     FAVORITE_2 = 5,
+    ANTI_SNORE = 6,
+    TOGGLE_LIGHTS = 7,
+    MASSAGE_WAVE_MODE = 8,
+    HEAD_ZONE_MASSAGE = 9,
+    FOOT_ZONE_MASSAGE = 10,
 };
 
 class TemperBridgeNovaCover : public cover::Cover, public Parented<TemperBridgeNovaComponent> {
