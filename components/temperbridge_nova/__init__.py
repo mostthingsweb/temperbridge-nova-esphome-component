@@ -47,10 +47,12 @@ TemperBridgeNovaComponent = temperbridge_nova_ns.class_(
     "TemperBridgeNovaComponent", cg.Component, uart.UARTDevice
 )
 TemperBridgeNovaCover = temperbridge_nova_ns.class_("TemperBridgeNovaCover", cover.Cover)
+MfpActuator = temperbridge_nova_ns.enum("MfpActuator", is_class=True)
 TemperBridgeNovaButton = temperbridge_nova_ns.class_("TemperBridgeNovaButton", button.Button)
 TemperBridgeNovaStatusPacketCaptureButton = temperbridge_nova_ns.class_(
     "TemperBridgeNovaStatusPacketCaptureButton", button.Button
 )
+MfpButtonCommand = temperbridge_nova_ns.enum("MfpButtonCommand", is_class=True)
 TemperBridgeNovaStatusPacketLogSwitch = temperbridge_nova_ns.class_(
     "TemperBridgeNovaStatusPacketLogSwitch", switch.Switch
 )
@@ -265,42 +267,42 @@ async def to_code(config):
 
     head_cover = await cover.new_cover(config[CONF_HEAD])
     cg.add(head_cover.set_parent(var))
-    cg.add(head_cover.set_actuator(0))
+    cg.add(head_cover.set_actuator(MfpActuator.HEAD))
     cg.add(var.set_head_cover(head_cover))
 
     legs_cover = await cover.new_cover(config[CONF_LEGS])
     cg.add(legs_cover.set_parent(var))
-    cg.add(legs_cover.set_actuator(1))
+    cg.add(legs_cover.set_actuator(MfpActuator.LEGS))
     cg.add(var.set_legs_cover(legs_cover))
 
     lumbar_cover = await cover.new_cover(config[CONF_LUMBAR])
     cg.add(lumbar_cover.set_parent(var))
-    cg.add(lumbar_cover.set_actuator(2))
+    cg.add(lumbar_cover.set_actuator(MfpActuator.LUMBAR))
     cg.add(var.set_lumbar_cover(lumbar_cover))
 
     stop_button = await button.new_button(config[CONF_STOP])
     cg.add(stop_button.set_parent(var))
-    cg.add(stop_button.set_command(0))
+    cg.add(stop_button.set_command(MfpButtonCommand.STOP))
 
     flat_button = await button.new_button(config[CONF_FLAT])
     cg.add(flat_button.set_parent(var))
-    cg.add(flat_button.set_command(1))
+    cg.add(flat_button.set_command(MfpButtonCommand.FLAT))
 
     zero_g_button = await button.new_button(config[CONF_ZERO_G])
     cg.add(zero_g_button.set_parent(var))
-    cg.add(zero_g_button.set_command(2))
+    cg.add(zero_g_button.set_command(MfpButtonCommand.ZERO_G))
 
     tv_button = await button.new_button(config[CONF_TV])
     cg.add(tv_button.set_parent(var))
-    cg.add(tv_button.set_command(3))
+    cg.add(tv_button.set_command(MfpButtonCommand.TV))
 
     favorite_1_button = await button.new_button(config[CONF_FAVORITE_1])
     cg.add(favorite_1_button.set_parent(var))
-    cg.add(favorite_1_button.set_command(4))
+    cg.add(favorite_1_button.set_command(MfpButtonCommand.FAVORITE_1))
 
     favorite_2_button = await button.new_button(config[CONF_FAVORITE_2])
     cg.add(favorite_2_button.set_parent(var))
-    cg.add(favorite_2_button.set_command(5))
+    cg.add(favorite_2_button.set_command(MfpButtonCommand.FAVORITE_2))
 
     capture_status_packets_button = await button.new_button(config[CONF_CAPTURE_STATUS_PACKETS])
     cg.add(capture_status_packets_button.set_parent(var))

@@ -30,8 +30,8 @@ enum class MfpButtonCommand : uint8_t {
 
 class TemperBridgeNovaCover : public cover::Cover, public Parented<TemperBridgeNovaComponent> {
 public:
-    void set_actuator(uint8_t actuator) {
-        this->_actuator = static_cast<MfpActuator>(actuator);
+    void set_actuator(MfpActuator actuator) {
+        this->_actuator = actuator;
     }
 
     void set_operation(cover::CoverOperation operation);
@@ -46,8 +46,8 @@ protected:
 
 class TemperBridgeNovaButton : public button::Button, public Parented<TemperBridgeNovaComponent> {
 public:
-    void set_command(uint8_t command) {
-        this->_command = static_cast<MfpButtonCommand>(command);
+    void set_command(MfpButtonCommand command) {
+        this->_command = command;
     }
 
 protected:
