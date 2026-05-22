@@ -175,7 +175,7 @@ CONFIG_SCHEMA = (
                 "Stop",
             ),
             cv.Optional(CONF_FLAT, default={}): _with_default_name(
-                button.button_schema(TemperBridgeNovaButton, icon="mdi:bed"),
+                button.button_schema(TemperBridgeNovaButton, icon="mdi:minus"),
                 "Flat",
             ),
             cv.Optional(CONF_ZERO_G, default={}): _with_default_name(
