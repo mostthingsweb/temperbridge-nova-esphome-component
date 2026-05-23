@@ -67,6 +67,10 @@ public:
         this->_control_box_model_sensor.set_sensor(sensor);
     }
 
+    void set_movement_state_sensor(text_sensor::TextSensor *sensor) {
+        this->_movement_state_sensor.set_sensor(sensor);
+    }
+
     void set_status_packet_capture_sensor(text_sensor::TextSensor *sensor) {
         this->_status_packet_capture_sensor = sensor;
     }
@@ -142,6 +146,7 @@ protected:
     text_sensor::TextSensor *_mfp_link_state_sensor{nullptr};
     text_sensor::TextSensor *_key_sensor{nullptr};
     DistinctValueSensor<std::string> _control_box_model_sensor{};
+    DistinctValueSensor<std::string> _movement_state_sensor{};
     DistinctValueSensor<uint8_t> _status_0{};
     DistinctValueSensor<uint8_t> _status_7{};
     static constexpr size_t STATUS_PACKET_CAPTURE_COUNT = 10;

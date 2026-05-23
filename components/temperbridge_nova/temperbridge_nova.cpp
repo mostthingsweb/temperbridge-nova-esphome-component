@@ -116,6 +116,7 @@ void TemperBridgeNovaComponent::dump_config() {
     LOG_TEXT_SENSOR("  ", "MFP Link State", this->_mfp_link_state_sensor);
     LOG_TEXT_SENSOR("  ", "MFP Key", this->_key_sensor);
     LOG_TEXT_SENSOR("  ", "Control Box Model", this->_control_box_model_sensor.sensor());
+    LOG_TEXT_SENSOR("  ", "Movement State", this->_movement_state_sensor.sensor());
     LOG_TEXT_SENSOR("  ", "Status Packet Capture", this->_status_packet_capture_sensor);
     LOG_SENSOR("  ", "Status[0]", this->_status_0.sensor());
     LOG_SENSOR("  ", "Status[7]", this->_status_7.sensor());
@@ -308,6 +309,8 @@ void TemperBridgeNovaComponent::set_link_state_(MfpLinkState state) {
 }
 
 void TemperBridgeNovaComponent::publish_movement_state_(MovementState state) {
+    this->_movement_state_sensor.publish_state(movement_state_to_string(state));
+
     if (this->_head_cover != nullptr) {
         this->_head_cover->set_operation(actuator_operation(state, MfpActuator::HEAD));
     }

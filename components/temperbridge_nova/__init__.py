@@ -39,6 +39,7 @@ CONF_LOG_STATUS_PACKETS = "log_status_packets"
 CONF_LUMBAR = "lumbar"
 CONF_LUMBAR_PULSE = "lumbar_pulse"
 CONF_MASSAGE_WAVE_MODE = "massage_wave_mode"
+CONF_MOVEMENT_STATE = "movement_state"
 CONF_RX_ENABLE_PIN = "rx_enable_pin"
 CONF_STOP = "stop"
 CONF_STATUS_0 = "status_0"
@@ -151,6 +152,13 @@ CONFIG_SCHEMA = (
                     entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
                 ),
                 "Control Box Model",
+            ),
+            cv.Optional(CONF_MOVEMENT_STATE, default={}): _with_default_name(
+                text_sensor.text_sensor_schema(
+                    icon="mdi:motion",
+                    entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+                ),
+                "Movement State",
             ),
             cv.Optional(CONF_HEAD_PULSE, default={}): _with_default_name(
                 sensor.sensor_schema(
@@ -314,6 +322,9 @@ async def to_code(config):
 
     control_box_model_sensor = await text_sensor.new_text_sensor(config[CONF_CONTROL_BOX_MODEL])
     cg.add(var.set_control_box_model_sensor(control_box_model_sensor))
+
+    movement_state_sensor = await text_sensor.new_text_sensor(config[CONF_MOVEMENT_STATE])
+    cg.add(var.set_movement_state_sensor(movement_state_sensor))
 
     head_pulse_sensor = await sensor.new_sensor(config[CONF_HEAD_PULSE])
     cg.add(var.set_head_pulse_sensor(head_pulse_sensor))
