@@ -334,8 +334,8 @@ void TemperBridgeNovaComponent::process_hard_limit_detection_(uint32_t now_ms) {
         return;
     }
 
-    ESP_LOGI(TAG, "Detected hard limit while %s; stopping movement commands (velocity %.1f pulses/s)",
-             movement_state_to_string(this->_movement_state), velocity);
+    ESP_LOGI(TAG, "Detected hard limit while %s; stopping movement commands",
+             movement_state_to_string(this->_movement_state));
     this->clear_uart_command_queue_();
     this->clear_momentary_command_();
     this->_movement_state = MovementState::STOPPED;
