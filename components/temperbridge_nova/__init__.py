@@ -30,14 +30,20 @@ CONF_FLAT = "flat"
 CONF_FOOT_ZONE_MASSAGE = "foot_zone_massage"
 CONF_KEY_CODE = "key_code"
 CONF_HEAD = "head"
+CONF_HEAD_LOWER = "head_lower"
 CONF_HEAD_PULSE = "head_pulse"
+CONF_HEAD_RAISE = "head_raise"
 CONF_HEAD_ZONE_MASSAGE = "head_zone_massage"
 CONF_LEGS = "legs"
+CONF_LEGS_LOWER = "legs_lower"
 CONF_LEGS_PULSE = "legs_pulse"
+CONF_LEGS_RAISE = "legs_raise"
 CONF_LINK_STATE = "link_state"
 CONF_LOG_STATUS_PACKETS = "log_status_packets"
 CONF_LUMBAR = "lumbar"
+CONF_LUMBAR_LOWER = "lumbar_lower"
 CONF_LUMBAR_PULSE = "lumbar_pulse"
+CONF_LUMBAR_RAISE = "lumbar_raise"
 CONF_MASSAGE_WAVE_MODE = "massage_wave_mode"
 CONF_MOVEMENT_STATE = "movement_state"
 CONF_RX_ENABLE_PIN = "rx_enable_pin"
@@ -58,9 +64,15 @@ TemperBridgeNovaComponent = temperbridge_nova_ns.class_(
 )
 TemperBridgeNovaCover = temperbridge_nova_ns.class_("TemperBridgeNovaCover", cover.Cover)
 MfpActuator = temperbridge_nova_ns.enum("MfpActuator", is_class=True)
+MfpActuatorDirection = temperbridge_nova_ns.enum(
+    "MfpActuatorDirection", is_class=True
+)
 TemperBridgeNovaButton = temperbridge_nova_ns.class_("TemperBridgeNovaButton", button.Button)
 TemperBridgeNovaStopButton = temperbridge_nova_ns.class_(
     "TemperBridgeNovaStopButton", button.Button
+)
+TemperBridgeNovaActuatorButton = temperbridge_nova_ns.class_(
+    "TemperBridgeNovaActuatorButton", button.Button
 )
 TemperBridgeNovaStatusPacketCaptureButton = temperbridge_nova_ns.class_(
     "TemperBridgeNovaStatusPacketCaptureButton", button.Button
@@ -116,6 +128,13 @@ def _with_send_key_action(config, button_key):
         *button_config.get(CONF_ON_PRESS, []),
     ]
     return button_config
+
+
+async def _new_actuator_button(config, parent, button_key, actuator, direction):
+    actuator_button = await button.new_button(config[button_key])
+    cg.add(actuator_button.set_parent(parent))
+    cg.add(actuator_button.set_actuator(actuator))
+    cg.add(actuator_button.set_direction(direction))
 
 
 CONFIG_SCHEMA = (
@@ -220,6 +239,42 @@ CONFIG_SCHEMA = (
             cv.Optional(CONF_LUMBAR, default={}): _with_default_name(
                 cover.cover_schema(TemperBridgeNovaCover, icon="mdi:bed"),
                 "Lumbar",
+            ),
+            cv.Optional(CONF_HEAD_RAISE, default={}): _with_default_name(
+                button.button_schema(
+                    TemperBridgeNovaActuatorButton, icon="mdi:arrow-up-bold"
+                ),
+                "Head Raise",
+            ),
+            cv.Optional(CONF_HEAD_LOWER, default={}): _with_default_name(
+                button.button_schema(
+                    TemperBridgeNovaActuatorButton, icon="mdi:arrow-down-bold"
+                ),
+                "Head Lower",
+            ),
+            cv.Optional(CONF_LEGS_RAISE, default={}): _with_default_name(
+                button.button_schema(
+                    TemperBridgeNovaActuatorButton, icon="mdi:arrow-up-bold"
+                ),
+                "Legs Raise",
+            ),
+            cv.Optional(CONF_LEGS_LOWER, default={}): _with_default_name(
+                button.button_schema(
+                    TemperBridgeNovaActuatorButton, icon="mdi:arrow-down-bold"
+                ),
+                "Legs Lower",
+            ),
+            cv.Optional(CONF_LUMBAR_RAISE, default={}): _with_default_name(
+                button.button_schema(
+                    TemperBridgeNovaActuatorButton, icon="mdi:arrow-up-bold"
+                ),
+                "Lumbar Raise",
+            ),
+            cv.Optional(CONF_LUMBAR_LOWER, default={}): _with_default_name(
+                button.button_schema(
+                    TemperBridgeNovaActuatorButton, icon="mdi:arrow-down-bold"
+                ),
+                "Lumbar Lower",
             ),
             cv.Optional(CONF_STOP, default={}): _with_default_name(
                 button.button_schema(TemperBridgeNovaStopButton, icon="mdi:stop"),
@@ -358,6 +413,30 @@ async def to_code(config):
     cg.add(lumbar_cover.set_parent(var))
     cg.add(lumbar_cover.set_actuator(MfpActuator.LUMBAR))
     cg.add(var.set_lumbar_cover(lumbar_cover))
+
+    await _new_actuator_button(
+        config, var, CONF_HEAD_RAISE, MfpActuator.HEAD, MfpActuatorDirection.RAISE
+    )
+
+    await _new_actuator_button(
+        config, var, CONF_HEAD_LOWER, MfpActuator.HEAD, MfpActuatorDirection.LOWER
+    )
+
+    await _new_actuator_button(
+        config, var, CONF_LEGS_RAISE, MfpActuator.LEGS, MfpActuatorDirection.RAISE
+    )
+
+    await _new_actuator_button(
+        config, var, CONF_LEGS_LOWER, MfpActuator.LEGS, MfpActuatorDirection.LOWER
+    )
+
+    await _new_actuator_button(
+        config, var, CONF_LUMBAR_RAISE, MfpActuator.LUMBAR, MfpActuatorDirection.RAISE
+    )
+
+    await _new_actuator_button(
+        config, var, CONF_LUMBAR_LOWER, MfpActuator.LUMBAR, MfpActuatorDirection.LOWER
+    )
 
     stop_button = await button.new_button(config[CONF_STOP])
     cg.add(stop_button.set_parent(var))

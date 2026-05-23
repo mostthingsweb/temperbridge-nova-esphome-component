@@ -108,6 +108,7 @@ public:
     }
 
     void handle_cover_command(MfpActuator actuator, bool open);
+    void handle_momentary_actuator_command(MfpActuator actuator, MfpActuatorDirection direction);
     void handle_stop_command();
     void handle_stop_button_command();
     void handle_status_packet_capture_command();
@@ -166,11 +167,14 @@ protected:
 
     /* Movement commands */
     static constexpr uint32_t MOVEMENT_COMMAND_PERIOD_MS = 500;
+    static constexpr uint32_t MOMENTARY_COMMAND_TIMEOUT_MS = 900;
     static constexpr uint32_t PULSE_PUBLISH_MIN_INTERVAL_MS = 100;
+    void process_momentary_command_timeout_();
     void process_movement_timer_();
     void handle_movement_command_(MovementState requested_state, const char *command_name);
     void handle_button_command_(const MfpCommandBytes &command, const char *command_name);
     void enqueue_current_movement_command_();
+    void clear_momentary_command_();
     TemperBridgeNovaCover *_head_cover{nullptr};
     TemperBridgeNovaCover *_legs_cover{nullptr};
     TemperBridgeNovaCover *_lumbar_cover{nullptr};
@@ -179,6 +183,7 @@ protected:
     ThrottledPulseSensor _lumbar_pulse{PULSE_PUBLISH_MIN_INTERVAL_MS};
     MovementState _movement_state{MovementState::STOPPED};
     uint32_t _next_movement_command_ms{0};
+    std::optional<uint32_t> _momentary_command_deadline_ms{};
 
     /* Hard limit detection */
     static constexpr uint32_t HARD_LIMIT_STARTUP_GRACE_MS = 750;

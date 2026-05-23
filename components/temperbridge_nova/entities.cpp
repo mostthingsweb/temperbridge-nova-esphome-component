@@ -49,6 +49,13 @@ void TemperBridgeNovaStopButton::press_action() {
     this->parent_->handle_stop_button_command();
 }
 
+void TemperBridgeNovaActuatorButton::press_action() {
+    if (this->parent_ == nullptr) {
+        return;
+    }
+    this->parent_->handle_momentary_actuator_command(this->_actuator, this->_direction);
+}
+
 void TemperBridgeNovaStatusPacketCaptureButton::press_action() {
     if (this->parent_ == nullptr) {
         return;

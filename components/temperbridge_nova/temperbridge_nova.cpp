@@ -79,6 +79,38 @@ cover::CoverOperation actuator_operation(MovementState state, MfpActuator actuat
     return cover::COVER_OPERATION_IDLE;
 }
 
+MovementState actuator_movement_state(MfpActuator actuator, bool open) {
+    switch (actuator) {
+    case MfpActuator::HEAD:
+        return open ? MovementState::HEAD_RAISING : MovementState::HEAD_LOWERING;
+    case MfpActuator::LEGS:
+        return open ? MovementState::LEGS_RAISING : MovementState::LEGS_LOWERING;
+    case MfpActuator::LUMBAR:
+        return open ? MovementState::LUMBAR_RAISING : MovementState::LUMBAR_LOWERING;
+    }
+    return MovementState::STOPPED;
+}
+
+const char *actuator_command_name(MfpActuator actuator, bool open) {
+    switch (actuator) {
+    case MfpActuator::HEAD:
+        return open ? "head up" : "head down";
+    case MfpActuator::LEGS:
+        return open ? "legs up" : "legs down";
+    case MfpActuator::LUMBAR:
+        return open ? "lumbar up" : "lumbar down";
+    }
+    return "unknown movement";
+}
+
+MovementState actuator_movement_state(MfpActuator actuator, MfpActuatorDirection direction) {
+    return actuator_movement_state(actuator, direction == MfpActuatorDirection::RAISE);
+}
+
+const char *actuator_command_name(MfpActuator actuator, MfpActuatorDirection direction) {
+    return actuator_command_name(actuator, direction == MfpActuatorDirection::RAISE);
+}
+
 }  // namespace
 
 void TemperBridgeNovaComponent::setup() {
@@ -102,6 +134,7 @@ void TemperBridgeNovaComponent::setup() {
 void TemperBridgeNovaComponent::loop() {
     this->process_uart_();
     this->process_status_timeout_();
+    this->process_momentary_command_timeout_();
     this->process_movement_timer_();
     const uint32_t now = millis();
     this->_head_pulse.publish_pending(now);
@@ -140,20 +173,34 @@ void TemperBridgeNovaComponent::set_board_id_pin(size_t index, InternalGPIOPin *
 }
 
 void TemperBridgeNovaComponent::handle_cover_command(MfpActuator actuator, bool open) {
-    switch (actuator) {
-    case MfpActuator::HEAD:
-        this->handle_movement_command_(open ? MovementState::HEAD_RAISING : MovementState::HEAD_LOWERING,
-                                       open ? "head up" : "head down");
-        break;
-    case MfpActuator::LEGS:
-        this->handle_movement_command_(open ? MovementState::LEGS_RAISING : MovementState::LEGS_LOWERING,
-                                       open ? "legs up" : "legs down");
-        break;
-    case MfpActuator::LUMBAR:
-        this->handle_movement_command_(open ? MovementState::LUMBAR_RAISING : MovementState::LUMBAR_LOWERING,
-                                       open ? "lumbar up" : "lumbar down");
-        break;
+    this->handle_movement_command_(actuator_movement_state(actuator, open), actuator_command_name(actuator, open));
+}
+
+void TemperBridgeNovaComponent::handle_momentary_actuator_command(MfpActuator actuator,
+                                                                  MfpActuatorDirection direction) {
+    const auto requested_state = actuator_movement_state(actuator, direction);
+    const auto *command_name = actuator_command_name(actuator, direction);
+    if (this->_link_state != MfpLinkState::ONLINE) {
+        ESP_LOGW(TAG, "Ignoring momentary %s command while MFP link is %s", command_name,
+                 link_state_to_string(this->_link_state));
+        this->clear_momentary_command_();
+        this->_movement_state = MovementState::STOPPED;
+        this->reset_hard_limit_detection_();
+        this->publish_movement_state_(MovementState::STOPPED);
+        return;
     }
+
+    const uint32_t now = millis();
+    this->_momentary_command_deadline_ms = now + MOMENTARY_COMMAND_TIMEOUT_MS;
+    if (this->_movement_state == requested_state) {
+        return;
+    }
+
+    this->clear_uart_command_queue_();
+    this->_movement_state = requested_state;
+    this->publish_movement_state_(requested_state);
+    this->_next_movement_command_ms = now;
+    this->start_hard_limit_detection_(now);
 }
 
 void TemperBridgeNovaComponent::handle_stop_command() {
@@ -206,6 +253,27 @@ void TemperBridgeNovaComponent::process_movement_timer_() {
     this->_next_movement_command_ms = now + MOVEMENT_COMMAND_PERIOD_MS;
 }
 
+void TemperBridgeNovaComponent::process_momentary_command_timeout_() {
+    if (!this->_momentary_command_deadline_ms.has_value()) {
+        return;
+    }
+
+    const uint32_t now = millis();
+    if (static_cast<int32_t>(now - *this->_momentary_command_deadline_ms) < 0) {
+        return;
+    }
+
+    ESP_LOGI(TAG, "Momentary actuator command timed out; stopping movement commands");
+    this->clear_momentary_command_();
+    this->clear_uart_command_queue_();
+    this->_movement_state = MovementState::STOPPED;
+    this->reset_hard_limit_detection_();
+    if (this->_link_state == MfpLinkState::ONLINE) {
+        this->enqueue_uart_command_(mfp_commands::STOP);
+    }
+    this->publish_movement_state_(MovementState::STOPPED);
+}
+
 void TemperBridgeNovaComponent::process_hard_limit_detection_(uint32_t now_ms) {
     if (this->_movement_state == MovementState::STOPPED) {
         this->reset_hard_limit_detection_();
@@ -244,6 +312,7 @@ void TemperBridgeNovaComponent::process_hard_limit_detection_(uint32_t now_ms) {
     ESP_LOGI(TAG, "Detected hard limit while %s; stopping movement commands (velocity %.1f pulses/s)",
              movement_state_to_string(this->_movement_state), velocity);
     this->clear_uart_command_queue_();
+    this->clear_momentary_command_();
     this->_movement_state = MovementState::STOPPED;
     this->reset_hard_limit_detection_();
     this->publish_movement_state_(MovementState::STOPPED);
@@ -258,6 +327,7 @@ void TemperBridgeNovaComponent::publish_link_state_(MfpLinkState state) {
 void TemperBridgeNovaComponent::publish_key_(uint32_t key) {
     if (key != 0) {
         this->clear_uart_command_queue_();
+        this->clear_momentary_command_();
         this->reset_hard_limit_detection_();
         if (this->_movement_state != MovementState::STOPPED) {
             ESP_LOGI(TAG, "MFP key press detected; stopping local movement commands");
@@ -301,6 +371,7 @@ void TemperBridgeNovaComponent::set_link_state_(MfpLinkState state) {
 
     this->publish_link_state_(state);
     if (state != MfpLinkState::ONLINE) {
+        this->clear_momentary_command_();
         this->_movement_state = MovementState::STOPPED;
         this->reset_hard_limit_detection_();
         this->publish_key_(0);
@@ -323,6 +394,7 @@ void TemperBridgeNovaComponent::publish_movement_state_(MovementState state) {
 }
 
 void TemperBridgeNovaComponent::handle_movement_command_(MovementState requested_state, const char *command_name) {
+    this->clear_momentary_command_();
     if (this->_link_state != MfpLinkState::ONLINE) {
         ESP_LOGW(TAG, "Ignoring %s command while MFP link is %s", command_name,
                  link_state_to_string(this->_link_state));
@@ -343,6 +415,7 @@ void TemperBridgeNovaComponent::handle_movement_command_(MovementState requested
 void TemperBridgeNovaComponent::handle_button_command_(const MfpCommandBytes &command, const char *command_name) {
     ESP_LOGI(TAG, "Got the %s command", command_name);
     this->clear_uart_command_queue_();
+    this->clear_momentary_command_();
     this->_movement_state = MovementState::STOPPED;
     this->reset_hard_limit_detection_();
     if (this->_link_state == MfpLinkState::ONLINE) {
@@ -388,6 +461,10 @@ void TemperBridgeNovaComponent::enqueue_current_movement_command_() {
     case MovementState::STOPPED:
         break;
     }
+}
+
+void TemperBridgeNovaComponent::clear_momentary_command_() {
+    this->_momentary_command_deadline_ms.reset();
 }
 
 void TemperBridgeNovaComponent::start_hard_limit_detection_(uint32_t now_ms) {
