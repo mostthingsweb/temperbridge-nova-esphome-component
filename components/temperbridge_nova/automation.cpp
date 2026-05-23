@@ -34,7 +34,8 @@ std::optional<MfpCommandBytes> parse_custom_key_code(const std::string &key_code
     }
 
     const uint32_t key = *parsed_key;
-    MfpCommandBytes command{0x05, 0x01,
+    MfpCommandBytes command{0x05,
+                            0x01,
                             static_cast<uint8_t>(key & 0xFF),
                             static_cast<uint8_t>((key >> 8) & 0xFF),
                             static_cast<uint8_t>((key >> 16) & 0xFF),
@@ -58,7 +59,7 @@ void send_custom_key_action(TemperBridgeNovaComponent *parent, const std::string
         return;
     }
 
-    parent->send_custom_key_code(*command);
+    parent->send_custom_key_code(*command, key_code);
 }
 
 }  // namespace temperbridge_nova

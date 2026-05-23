@@ -113,7 +113,7 @@ public:
     void handle_stop_command();
     void handle_stop_button_command();
     void handle_status_packet_capture_command();
-    void send_custom_key_code(const MfpCommandBytes &command);
+    void send_custom_key_code(const MfpCommandBytes &command, const std::string &key_code);
     void set_status_packet_logging_enabled(bool enabled);
 
 protected:
@@ -175,7 +175,8 @@ protected:
     void process_movement_timer_();
     bool actuator_supported_(MfpActuator actuator) const;
     void handle_movement_command_(MovementState requested_state, const char *command_name);
-    void handle_button_command_(const MfpCommandBytes &command, const char *command_name);
+    void handle_button_command_(const MfpCommandBytes &command, const std::string &command_name,
+                                const std::optional<std::string> &key_code = {});
     void enqueue_current_movement_command_();
     void clear_momentary_command_();
     TemperBridgeNovaCover *_head_cover{nullptr};

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <optional>
 #include <string>
 
 #include "esphome/components/cover/cover.h"
@@ -228,8 +229,8 @@ void TemperBridgeNovaComponent::handle_status_packet_capture_command() {
     this->start_status_packet_capture_();
 }
 
-void TemperBridgeNovaComponent::send_custom_key_code(const MfpCommandBytes &command) {
-    this->handle_button_command_(command, "custom key");
+void TemperBridgeNovaComponent::send_custom_key_code(const MfpCommandBytes &command, const std::string &key_code) {
+    this->handle_button_command_(command, "custom key", key_code);
 }
 
 void TemperBridgeNovaComponent::set_status_packet_logging_enabled(bool enabled) {
@@ -442,8 +443,13 @@ void TemperBridgeNovaComponent::handle_movement_command_(MovementState requested
     this->start_hard_limit_detection_(now);
 }
 
-void TemperBridgeNovaComponent::handle_button_command_(const MfpCommandBytes &command, const char *command_name) {
-    ESP_LOGI(TAG, "Got the %s command", command_name);
+void TemperBridgeNovaComponent::handle_button_command_(const MfpCommandBytes &command, const std::string &command_name,
+                                                       const std::optional<std::string> &key_code) {
+    if (key_code.has_value()) {
+        ESP_LOGI(TAG, "Got key code %s", key_code->c_str());
+    } else {
+        ESP_LOGI(TAG, "Got the %s command", command_name.c_str());
+    }
     this->clear_uart_command_queue_();
     this->clear_momentary_command_();
     this->_movement_state = MovementState::STOPPED;
