@@ -124,6 +124,7 @@ void TemperBridgeNovaComponent::process_status_packet_(const uint8_t *data, size
         ESP_LOGI(TAG, "Control box model changed: %s -> %s", control_box_model_to_string(this->_control_box_model),
                  control_box_model_to_string(control_box_model));
         this->_control_box_model = control_box_model;
+        this->publish_control_box_capabilities_();
     }
     this->_control_box_model_sensor.publish_state(control_box_model_to_string(this->_control_box_model));
 

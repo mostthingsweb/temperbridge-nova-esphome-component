@@ -39,9 +39,6 @@ void TemperBridgeNovaCover::control(const cover::CoverCall &call) {
     }
 }
 
-void TemperBridgeNovaButton::press_action() {
-}
-
 void TemperBridgeNovaStopButton::press_action() {
     if (this->parent_ == nullptr) {
         return;

@@ -1,15 +1,11 @@
 from esphome import automation
 import esphome.codegen as cg
-from esphome.components import button, cover, sensor, switch, text_sensor, uart
+from esphome.components import binary_sensor, button, cover, sensor, switch, text_sensor, uart
 import esphome.config_validation as cv
 from esphome.const import (
-    CONF_AUTOMATION_ID,
     CONF_KEY,
     CONF_ID,
     CONF_NAME,
-    CONF_ON_PRESS,
-    CONF_THEN,
-    CONF_TYPE_ID,
     ENTITY_CATEGORY_DIAGNOSTIC,
     ICON_PULSE,
     STATE_CLASS_MEASUREMENT,
@@ -17,23 +13,17 @@ from esphome.const import (
 from esphome import pins
 
 DEPENDENCIES = ["uart"]
-AUTO_LOAD = ["button", "cover", "sensor", "switch", "text_sensor"]
+AUTO_LOAD = ["binary_sensor", "button", "cover", "sensor", "switch", "text_sensor"]
 
-CONF_ANTI_SNORE = "anti_snore"
 CONF_BOARD_ID = "board_id"
 CONF_BOARD_ID_PINS = "board_id_pins"
 CONF_CAPTURE_STATUS_PACKETS = "capture_status_packets"
 CONF_CONTROL_BOX_MODEL = "control_box_model"
-CONF_FAVORITE_1 = "favorite_1"
-CONF_FAVORITE_2 = "favorite_2"
-CONF_FLAT = "flat"
-CONF_FOOT_ZONE_MASSAGE = "foot_zone_massage"
 CONF_KEY_CODE = "key_code"
 CONF_HEAD = "head"
 CONF_HEAD_LOWER = "head_lower"
 CONF_HEAD_PULSE = "head_pulse"
 CONF_HEAD_RAISE = "head_raise"
-CONF_HEAD_ZONE_MASSAGE = "head_zone_massage"
 CONF_LEGS = "legs"
 CONF_LEGS_LOWER = "legs_lower"
 CONF_LEGS_PULSE = "legs_pulse"
@@ -44,16 +34,13 @@ CONF_LUMBAR = "lumbar"
 CONF_LUMBAR_LOWER = "lumbar_lower"
 CONF_LUMBAR_PULSE = "lumbar_pulse"
 CONF_LUMBAR_RAISE = "lumbar_raise"
-CONF_MASSAGE_WAVE_MODE = "massage_wave_mode"
+CONF_LUMBAR_SUPPORTED = "lumbar_supported"
 CONF_MOVEMENT_STATE = "movement_state"
 CONF_RX_ENABLE_PIN = "rx_enable_pin"
 CONF_STOP = "stop"
 CONF_STATUS_0 = "status_0"
 CONF_STATUS_7 = "status_7"
 CONF_STATUS_PACKET_CAPTURE = "status_packet_capture"
-CONF_TOGGLE_LIGHTS = "toggle_lights"
-CONF_TV = "tv"
-CONF_ZERO_G = "zero_g"
 
 DEFAULT_BOARD_ID_PINS = [4, 5, 6, 7]
 DEFAULT_RX_ENABLE_PIN = 10
@@ -67,7 +54,6 @@ MfpActuator = temperbridge_nova_ns.enum("MfpActuator", is_class=True)
 MfpActuatorDirection = temperbridge_nova_ns.enum(
     "MfpActuatorDirection", is_class=True
 )
-TemperBridgeNovaButton = temperbridge_nova_ns.class_("TemperBridgeNovaButton", button.Button)
 TemperBridgeNovaStopButton = temperbridge_nova_ns.class_(
     "TemperBridgeNovaStopButton", button.Button
 )
@@ -87,47 +73,12 @@ TemperBridgeNovaSendKeyAction = temperbridge_nova_ns.class_(
 
 def _with_default_name(schema, name):
     def set_default_name(value):
+        if value is None:
+            value = {}
         value.setdefault(CONF_NAME, name)
         return value
 
     return cv.All(set_default_name, schema)
-
-
-BUTTON_KEY_CODES = {
-    CONF_FLAT: "08000000",
-    CONF_ZERO_G: "00100000",
-    CONF_TV: "00400000",
-    CONF_FAVORITE_1: "00000100",
-    CONF_FAVORITE_2: "00000080",
-    CONF_ANTI_SNORE: "00800000",
-    CONF_TOGGLE_LIGHTS: "00000200",
-    CONF_MASSAGE_WAVE_MODE: "00000004",
-    CONF_HEAD_ZONE_MASSAGE: "00080000",
-    CONF_FOOT_ZONE_MASSAGE: "00040000",
-}
-
-
-def _with_send_key_action(config, button_key):
-    button_config = dict(config[button_key])
-    send_key_automation = automation.validate_automation({})(
-        {
-            CONF_AUTOMATION_ID: f"temperbridge_nova_{button_key}_send_key_automation",
-            CONF_THEN: [
-                {
-                    CONF_TYPE_ID: f"temperbridge_nova_{button_key}_send_key_action",
-                    "temperbridge_nova.send_key": {
-                        CONF_ID: config[CONF_ID],
-                        CONF_KEY_CODE: BUTTON_KEY_CODES[button_key],
-                    }
-                }
-            ],
-        }
-    )
-    button_config[CONF_ON_PRESS] = [
-        *send_key_automation,
-        *button_config.get(CONF_ON_PRESS, []),
-    ]
-    return button_config
 
 
 async def _new_actuator_button(config, parent, button_key, actuator, direction):
@@ -135,6 +86,31 @@ async def _new_actuator_button(config, parent, button_key, actuator, direction):
     cg.add(actuator_button.set_parent(parent))
     cg.add(actuator_button.set_actuator(actuator))
     cg.add(actuator_button.set_direction(direction))
+
+
+async def _new_cover(config, parent, cover_key, actuator, setter):
+    if cover_key not in config:
+        return
+
+    actuator_cover = await cover.new_cover(config[cover_key])
+    cg.add(actuator_cover.set_parent(parent))
+    cg.add(actuator_cover.set_actuator(actuator))
+    cg.add(setter(actuator_cover))
+
+
+async def _new_sensor(config, sensor_key, setter):
+    if sensor_key not in config:
+        return
+
+    actuator_sensor = await sensor.new_sensor(config[sensor_key])
+    cg.add(setter(actuator_sensor))
+
+
+async def _new_optional_actuator_button(config, parent, button_key, actuator, direction):
+    if button_key not in config:
+        return
+
+    await _new_actuator_button(config, parent, button_key, actuator, direction)
 
 
 CONFIG_SCHEMA = (
@@ -172,6 +148,13 @@ CONFIG_SCHEMA = (
                 ),
                 "Control Box Model",
             ),
+            cv.Optional(CONF_LUMBAR_SUPPORTED, default={}): _with_default_name(
+                binary_sensor.binary_sensor_schema(
+                    icon="mdi:bed",
+                    entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+                ),
+                "Lumbar Supported",
+            ),
             cv.Optional(CONF_MOVEMENT_STATE, default={}): _with_default_name(
                 text_sensor.text_sensor_schema(
                     icon="mdi:motion",
@@ -179,7 +162,7 @@ CONFIG_SCHEMA = (
                 ),
                 "Movement State",
             ),
-            cv.Optional(CONF_HEAD_PULSE, default={}): _with_default_name(
+            cv.Optional(CONF_HEAD_PULSE): _with_default_name(
                 sensor.sensor_schema(
                     icon=ICON_PULSE,
                     accuracy_decimals=0,
@@ -187,7 +170,7 @@ CONFIG_SCHEMA = (
                 ),
                 "Head Pulse",
             ),
-            cv.Optional(CONF_LEGS_PULSE, default={}): _with_default_name(
+            cv.Optional(CONF_LEGS_PULSE): _with_default_name(
                 sensor.sensor_schema(
                     icon=ICON_PULSE,
                     accuracy_decimals=0,
@@ -195,7 +178,7 @@ CONFIG_SCHEMA = (
                 ),
                 "Legs Pulse",
             ),
-            cv.Optional(CONF_LUMBAR_PULSE, default={}): _with_default_name(
+            cv.Optional(CONF_LUMBAR_PULSE): _with_default_name(
                 sensor.sensor_schema(
                     icon=ICON_PULSE,
                     accuracy_decimals=0,
@@ -228,49 +211,49 @@ CONFIG_SCHEMA = (
                 ),
                 "Status Packet Capture",
             ),
-            cv.Optional(CONF_HEAD, default={}): _with_default_name(
+            cv.Optional(CONF_HEAD): _with_default_name(
                 cover.cover_schema(TemperBridgeNovaCover, icon="mdi:bed"),
                 "Head",
             ),
-            cv.Optional(CONF_LEGS, default={}): _with_default_name(
+            cv.Optional(CONF_LEGS): _with_default_name(
                 cover.cover_schema(TemperBridgeNovaCover, icon="mdi:bed"),
                 "Legs",
             ),
-            cv.Optional(CONF_LUMBAR, default={}): _with_default_name(
+            cv.Optional(CONF_LUMBAR): _with_default_name(
                 cover.cover_schema(TemperBridgeNovaCover, icon="mdi:bed"),
                 "Lumbar",
             ),
-            cv.Optional(CONF_HEAD_RAISE, default={}): _with_default_name(
+            cv.Optional(CONF_HEAD_RAISE): _with_default_name(
                 button.button_schema(
                     TemperBridgeNovaActuatorButton, icon="mdi:arrow-up-bold"
                 ),
                 "Head Raise",
             ),
-            cv.Optional(CONF_HEAD_LOWER, default={}): _with_default_name(
+            cv.Optional(CONF_HEAD_LOWER): _with_default_name(
                 button.button_schema(
                     TemperBridgeNovaActuatorButton, icon="mdi:arrow-down-bold"
                 ),
                 "Head Lower",
             ),
-            cv.Optional(CONF_LEGS_RAISE, default={}): _with_default_name(
+            cv.Optional(CONF_LEGS_RAISE): _with_default_name(
                 button.button_schema(
                     TemperBridgeNovaActuatorButton, icon="mdi:arrow-up-bold"
                 ),
                 "Legs Raise",
             ),
-            cv.Optional(CONF_LEGS_LOWER, default={}): _with_default_name(
+            cv.Optional(CONF_LEGS_LOWER): _with_default_name(
                 button.button_schema(
                     TemperBridgeNovaActuatorButton, icon="mdi:arrow-down-bold"
                 ),
                 "Legs Lower",
             ),
-            cv.Optional(CONF_LUMBAR_RAISE, default={}): _with_default_name(
+            cv.Optional(CONF_LUMBAR_RAISE): _with_default_name(
                 button.button_schema(
                     TemperBridgeNovaActuatorButton, icon="mdi:arrow-up-bold"
                 ),
                 "Lumbar Raise",
             ),
-            cv.Optional(CONF_LUMBAR_LOWER, default={}): _with_default_name(
+            cv.Optional(CONF_LUMBAR_LOWER): _with_default_name(
                 button.button_schema(
                     TemperBridgeNovaActuatorButton, icon="mdi:arrow-down-bold"
                 ),
@@ -279,46 +262,6 @@ CONFIG_SCHEMA = (
             cv.Optional(CONF_STOP, default={}): _with_default_name(
                 button.button_schema(TemperBridgeNovaStopButton, icon="mdi:stop"),
                 "Stop",
-            ),
-            cv.Optional(CONF_FLAT, default={}): _with_default_name(
-                button.button_schema(TemperBridgeNovaButton, icon="mdi:minus"),
-                "Flat",
-            ),
-            cv.Optional(CONF_ZERO_G, default={}): _with_default_name(
-                button.button_schema(TemperBridgeNovaButton, icon="mdi:angle-acute"),
-                "Zero G",
-            ),
-            cv.Optional(CONF_TV, default={}): _with_default_name(
-                button.button_schema(TemperBridgeNovaButton, icon="mdi:television"),
-                "TV",
-            ),
-            cv.Optional(CONF_FAVORITE_1, default={}): _with_default_name(
-                button.button_schema(TemperBridgeNovaButton, icon="mdi:numeric-1-box"),
-                "Favorite 1",
-            ),
-            cv.Optional(CONF_FAVORITE_2, default={}): _with_default_name(
-                button.button_schema(TemperBridgeNovaButton, icon="mdi:numeric-2-box"),
-                "Favorite 2",
-            ),
-            cv.Optional(CONF_ANTI_SNORE, default={}): _with_default_name(
-                button.button_schema(TemperBridgeNovaButton, icon="mdi:bed"),
-                "Anti-Snore",
-            ),
-            cv.Optional(CONF_TOGGLE_LIGHTS, default={}): _with_default_name(
-                button.button_schema(TemperBridgeNovaButton, icon="mdi:lightbulb"),
-                "Toggle Lights",
-            ),
-            cv.Optional(CONF_MASSAGE_WAVE_MODE, default={}): _with_default_name(
-                button.button_schema(TemperBridgeNovaButton, icon="mdi:waves"),
-                "Massage Wave Mode",
-            ),
-            cv.Optional(CONF_HEAD_ZONE_MASSAGE, default={}): _with_default_name(
-                button.button_schema(TemperBridgeNovaButton, icon="mdi:vibrate"),
-                "Head Zone Massage",
-            ),
-            cv.Optional(CONF_FOOT_ZONE_MASSAGE, default={}): _with_default_name(
-                button.button_schema(TemperBridgeNovaButton, icon="mdi:vibrate"),
-                "Foot Zone Massage",
             ),
             cv.Optional(CONF_CAPTURE_STATUS_PACKETS, default={}): _with_default_name(
                 button.button_schema(
@@ -378,17 +321,17 @@ async def to_code(config):
     control_box_model_sensor = await text_sensor.new_text_sensor(config[CONF_CONTROL_BOX_MODEL])
     cg.add(var.set_control_box_model_sensor(control_box_model_sensor))
 
+    lumbar_supported_sensor = await binary_sensor.new_binary_sensor(config[CONF_LUMBAR_SUPPORTED])
+    cg.add(var.set_lumbar_supported_sensor(lumbar_supported_sensor))
+
     movement_state_sensor = await text_sensor.new_text_sensor(config[CONF_MOVEMENT_STATE])
     cg.add(var.set_movement_state_sensor(movement_state_sensor))
 
-    head_pulse_sensor = await sensor.new_sensor(config[CONF_HEAD_PULSE])
-    cg.add(var.set_head_pulse_sensor(head_pulse_sensor))
+    await _new_sensor(config, CONF_HEAD_PULSE, var.set_head_pulse_sensor)
 
-    legs_pulse_sensor = await sensor.new_sensor(config[CONF_LEGS_PULSE])
-    cg.add(var.set_legs_pulse_sensor(legs_pulse_sensor))
+    await _new_sensor(config, CONF_LEGS_PULSE, var.set_legs_pulse_sensor)
 
-    lumbar_pulse_sensor = await sensor.new_sensor(config[CONF_LUMBAR_PULSE])
-    cg.add(var.set_lumbar_pulse_sensor(lumbar_pulse_sensor))
+    await _new_sensor(config, CONF_LUMBAR_PULSE, var.set_lumbar_pulse_sensor)
 
     status_0_sensor = await sensor.new_sensor(config[CONF_STATUS_0])
     cg.add(var.set_status_0_sensor(status_0_sensor))
@@ -399,67 +342,38 @@ async def to_code(config):
     status_packet_capture_sensor = await text_sensor.new_text_sensor(config[CONF_STATUS_PACKET_CAPTURE])
     cg.add(var.set_status_packet_capture_sensor(status_packet_capture_sensor))
 
-    head_cover = await cover.new_cover(config[CONF_HEAD])
-    cg.add(head_cover.set_parent(var))
-    cg.add(head_cover.set_actuator(MfpActuator.HEAD))
-    cg.add(var.set_head_cover(head_cover))
+    await _new_cover(config, var, CONF_HEAD, MfpActuator.HEAD, var.set_head_cover)
 
-    legs_cover = await cover.new_cover(config[CONF_LEGS])
-    cg.add(legs_cover.set_parent(var))
-    cg.add(legs_cover.set_actuator(MfpActuator.LEGS))
-    cg.add(var.set_legs_cover(legs_cover))
+    await _new_cover(config, var, CONF_LEGS, MfpActuator.LEGS, var.set_legs_cover)
 
-    lumbar_cover = await cover.new_cover(config[CONF_LUMBAR])
-    cg.add(lumbar_cover.set_parent(var))
-    cg.add(lumbar_cover.set_actuator(MfpActuator.LUMBAR))
-    cg.add(var.set_lumbar_cover(lumbar_cover))
+    await _new_cover(config, var, CONF_LUMBAR, MfpActuator.LUMBAR, var.set_lumbar_cover)
 
-    await _new_actuator_button(
+    await _new_optional_actuator_button(
         config, var, CONF_HEAD_RAISE, MfpActuator.HEAD, MfpActuatorDirection.RAISE
     )
 
-    await _new_actuator_button(
+    await _new_optional_actuator_button(
         config, var, CONF_HEAD_LOWER, MfpActuator.HEAD, MfpActuatorDirection.LOWER
     )
 
-    await _new_actuator_button(
+    await _new_optional_actuator_button(
         config, var, CONF_LEGS_RAISE, MfpActuator.LEGS, MfpActuatorDirection.RAISE
     )
 
-    await _new_actuator_button(
+    await _new_optional_actuator_button(
         config, var, CONF_LEGS_LOWER, MfpActuator.LEGS, MfpActuatorDirection.LOWER
     )
 
-    await _new_actuator_button(
+    await _new_optional_actuator_button(
         config, var, CONF_LUMBAR_RAISE, MfpActuator.LUMBAR, MfpActuatorDirection.RAISE
     )
 
-    await _new_actuator_button(
+    await _new_optional_actuator_button(
         config, var, CONF_LUMBAR_LOWER, MfpActuator.LUMBAR, MfpActuatorDirection.LOWER
     )
 
     stop_button = await button.new_button(config[CONF_STOP])
     cg.add(stop_button.set_parent(var))
-
-    await button.new_button(_with_send_key_action(config, CONF_FLAT))
-
-    await button.new_button(_with_send_key_action(config, CONF_ZERO_G))
-
-    await button.new_button(_with_send_key_action(config, CONF_TV))
-
-    await button.new_button(_with_send_key_action(config, CONF_FAVORITE_1))
-
-    await button.new_button(_with_send_key_action(config, CONF_FAVORITE_2))
-
-    await button.new_button(_with_send_key_action(config, CONF_ANTI_SNORE))
-
-    await button.new_button(_with_send_key_action(config, CONF_TOGGLE_LIGHTS))
-
-    await button.new_button(_with_send_key_action(config, CONF_MASSAGE_WAVE_MODE))
-
-    await button.new_button(_with_send_key_action(config, CONF_HEAD_ZONE_MASSAGE))
-
-    await button.new_button(_with_send_key_action(config, CONF_FOOT_ZONE_MASSAGE))
 
     capture_status_packets_button = await button.new_button(config[CONF_CAPTURE_STATUS_PACKETS])
     cg.add(capture_status_packets_button.set_parent(var))

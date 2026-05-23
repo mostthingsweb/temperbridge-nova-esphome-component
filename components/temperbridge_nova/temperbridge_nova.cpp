@@ -126,6 +126,7 @@ void TemperBridgeNovaComponent::setup() {
     this->publish_link_state_(MfpLinkState::UNKNOWN);
     this->publish_key_(0);
     this->_control_box_model_sensor.publish_state(control_box_model_to_string(this->_control_box_model));
+    this->publish_control_box_capabilities_();
     this->publish_movement_state_(MovementState::STOPPED);
 
     this->_next_movement_command_ms = millis();
@@ -149,6 +150,7 @@ void TemperBridgeNovaComponent::dump_config() {
     LOG_TEXT_SENSOR("  ", "MFP Link State", this->_mfp_link_state_sensor);
     LOG_TEXT_SENSOR("  ", "MFP Key", this->_key_sensor);
     LOG_TEXT_SENSOR("  ", "Control Box Model", this->_control_box_model_sensor.sensor());
+    LOG_BINARY_SENSOR("  ", "Lumbar Supported", this->_lumbar_supported_sensor);
     LOG_TEXT_SENSOR("  ", "Movement State", this->_movement_state_sensor.sensor());
     LOG_TEXT_SENSOR("  ", "Status Packet Capture", this->_status_packet_capture_sensor);
     LOG_SENSOR("  ", "Status[0]", this->_status_0.sensor());
@@ -173,6 +175,12 @@ void TemperBridgeNovaComponent::set_board_id_pin(size_t index, InternalGPIOPin *
 }
 
 void TemperBridgeNovaComponent::handle_cover_command(MfpActuator actuator, bool open) {
+    if (!this->actuator_supported_(actuator)) {
+        ESP_LOGW(TAG, "Ignoring %s command because actuator is not supported by control box model %s",
+                 actuator_command_name(actuator, open), control_box_model_to_string(this->_control_box_model));
+        return;
+    }
+
     this->handle_movement_command_(actuator_movement_state(actuator, open), actuator_command_name(actuator, open));
 }
 
@@ -180,6 +188,12 @@ void TemperBridgeNovaComponent::handle_momentary_actuator_command(MfpActuator ac
                                                                   MfpActuatorDirection direction) {
     const auto requested_state = actuator_movement_state(actuator, direction);
     const auto *command_name = actuator_command_name(actuator, direction);
+    if (!this->actuator_supported_(actuator)) {
+        ESP_LOGW(TAG, "Ignoring momentary %s command because actuator is not supported by control box model %s",
+                 command_name, control_box_model_to_string(this->_control_box_model));
+        return;
+    }
+
     if (this->_link_state != MfpLinkState::ONLINE) {
         ESP_LOGW(TAG, "Ignoring momentary %s command while MFP link is %s", command_name,
                  link_state_to_string(this->_link_state));
@@ -274,6 +288,17 @@ void TemperBridgeNovaComponent::process_momentary_command_timeout_() {
     this->publish_movement_state_(MovementState::STOPPED);
 }
 
+bool TemperBridgeNovaComponent::actuator_supported_(MfpActuator actuator) const {
+    switch (actuator) {
+    case MfpActuator::HEAD:
+    case MfpActuator::LEGS:
+        return true;
+    case MfpActuator::LUMBAR:
+        return control_box_model_supports_lumbar(this->_control_box_model);
+    }
+    return false;
+}
+
 void TemperBridgeNovaComponent::process_hard_limit_detection_(uint32_t now_ms) {
     if (this->_movement_state == MovementState::STOPPED) {
         this->reset_hard_limit_detection_();
@@ -354,6 +379,12 @@ void TemperBridgeNovaComponent::publish_key_(uint32_t key) {
     char key_payload[9];
     std::snprintf(key_payload, sizeof(key_payload), "%08X", static_cast<unsigned>(key));
     this->_key_sensor->publish_state(key_payload);
+}
+
+void TemperBridgeNovaComponent::publish_control_box_capabilities_() {
+    if (this->_lumbar_supported_sensor != nullptr) {
+        this->_lumbar_supported_sensor->publish_state(control_box_model_supports_lumbar(this->_control_box_model));
+    }
 }
 
 void TemperBridgeNovaComponent::set_link_state_(MfpLinkState state) {

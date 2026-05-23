@@ -42,5 +42,17 @@ const char *control_box_model_to_string(ControlBoxModel model) {
     }
 }
 
+bool control_box_model_supports_lumbar(ControlBoxModel model) {
+    switch (model) {
+    case ControlBoxModel::MC232:
+        return true;
+    case ControlBoxModel::CU358:
+    case ControlBoxModel::MC120:
+    case ControlBoxModel::UNKNOWN: /* fallthrough */
+    default:
+        return false;
+    }
+}
+
 }  // namespace temperbridge_nova
 }  // namespace esphome

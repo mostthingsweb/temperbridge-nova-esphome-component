@@ -1,0 +1,90 @@
+temperbridge_nova:
+  head_pulse:
+  legs_pulse:
+  head:
+  legs:
+  head_raise:
+  head_lower:
+  legs_raise:
+  legs_lower:
+
+button:
+  - platform: template
+    name: Flat
+    icon: mdi:minus
+    on_press:
+      - temperbridge_nova.send_key:
+          id: ${temperbridge_nova_id}
+          key_code: "08000000"
+
+  - platform: template
+    name: Zero G
+    icon: mdi:angle-acute
+    on_press:
+      - temperbridge_nova.send_key:
+          id: ${temperbridge_nova_id}
+          key_code: "00001000"
+
+  - platform: template
+    name: TV
+    icon: mdi:television
+    on_press:
+      - temperbridge_nova.send_key:
+          id: ${temperbridge_nova_id}
+          key_code: "00004000"
+
+  - platform: template
+    name: Favorite 1
+    icon: mdi:numeric-1-box
+    on_press:
+      - temperbridge_nova.send_key:
+          id: ${temperbridge_nova_id}
+          key_code: "00010000"
+
+  - platform: template
+    name: Favorite 2
+    icon: mdi:numeric-2-box
+    on_press:
+      - temperbridge_nova.send_key:
+          id: ${temperbridge_nova_id}
+          key_code: "80000000"
+
+  - platform: template
+    name: Anti-Snore
+    icon: mdi:bed
+    on_press:
+      - temperbridge_nova.send_key:
+          id: ${temperbridge_nova_id}
+          key_code: "00008000"
+
+  - platform: template
+    name: Toggle Lights
+    icon: mdi:lightbulb
+    on_press:
+      - temperbridge_nova.send_key:
+          id: ${temperbridge_nova_id}
+          key_code: "00020000"
+
+  - platform: template
+    name: Massage Wave Mode
+    icon: mdi:waves
+    on_press:
+      - temperbridge_nova.send_key:
+          id: ${temperbridge_nova_id}
+          key_code: "04000000"
+
+  - platform: template
+    name: Head Zone Massage
+    icon: mdi:vibrate
+    on_press:
+      - temperbridge_nova.send_key:
+          id: ${temperbridge_nova_id}
+          key_code: "00000800"
+
+  - platform: template
+    name: Foot Zone Massage
+    icon: mdi:vibrate
+    on_press:
+      - temperbridge_nova.send_key:
+          id: ${temperbridge_nova_id}
+          key_code: "00000400"

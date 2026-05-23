@@ -7,6 +7,7 @@
 #include <optional>
 #include <string>
 
+#include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/components/uart/uart.h"
@@ -65,6 +66,10 @@ public:
 
     void set_control_box_model_sensor(text_sensor::TextSensor *sensor) {
         this->_control_box_model_sensor.set_sensor(sensor);
+    }
+
+    void set_lumbar_supported_sensor(binary_sensor::BinarySensor *sensor) {
+        this->_lumbar_supported_sensor = sensor;
     }
 
     void set_movement_state_sensor(text_sensor::TextSensor *sensor) {
@@ -143,10 +148,12 @@ protected:
     void set_link_state_(MfpLinkState state);
     void publish_link_state_(MfpLinkState state);
     void publish_key_(uint32_t key);
+    void publish_control_box_capabilities_();
     void publish_movement_state_(MovementState state);
     text_sensor::TextSensor *_mfp_link_state_sensor{nullptr};
     text_sensor::TextSensor *_key_sensor{nullptr};
     DistinctValueSensor<std::string> _control_box_model_sensor{};
+    binary_sensor::BinarySensor *_lumbar_supported_sensor{nullptr};
     DistinctValueSensor<std::string> _movement_state_sensor{};
     DistinctValueSensor<uint8_t> _status_0{};
     DistinctValueSensor<uint8_t> _status_7{};
@@ -171,6 +178,7 @@ protected:
     static constexpr uint32_t PULSE_PUBLISH_MIN_INTERVAL_MS = 100;
     void process_momentary_command_timeout_();
     void process_movement_timer_();
+    bool actuator_supported_(MfpActuator actuator) const;
     void handle_movement_command_(MovementState requested_state, const char *command_name);
     void handle_button_command_(const MfpCommandBytes &command, const char *command_name);
     void enqueue_current_movement_command_();

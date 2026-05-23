@@ -1,0 +1,52 @@
+substitutions:
+  temperbridge_nova_id: temperbridge_nova_1
+  mfp_uart_id: mfp_uart
+
+uart:
+  id: ${mfp_uart_id}
+  tx_pin: GPIO13
+  rx_pin: GPIO12
+  flow_control_pin:
+    number: GPIO11
+    inverted: true
+  baud_rate: 38400
+  parity: EVEN
+  stop_bits: 1
+  data_bits: 8
+  rx_buffer_size: 2048
+  rx_timeout: 10
+
+external_components:
+  - source:
+      type: local
+      path: components
+    components:
+      - temperbridge_nova
+    refresh: always
+
+temperbridge_nova:
+  id: ${temperbridge_nova_id}
+  uart_id: ${mfp_uart_id}
+
+text:
+  - platform: template
+    id: custom_mfp_key_code
+    name: Custom MFP Key Code
+    icon: mdi:key-change
+    entity_category: diagnostic
+    mode: TEXT
+    min_length: 8
+    max_length: 8
+    pattern: "[0-9A-Fa-f]{8}"
+    optimistic: true
+    restore_value: true
+
+button:
+  - platform: template
+    name: Send Custom MFP Key
+    icon: mdi:send
+    entity_category: diagnostic
+    on_press:
+      - temperbridge_nova.send_key:
+          id: ${temperbridge_nova_id}
+          key_code: !lambda "return id(custom_mfp_key_code).state;"

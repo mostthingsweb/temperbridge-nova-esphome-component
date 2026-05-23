@@ -21,6 +21,7 @@ struct ControlBoxModelSignature {
 
 ControlBoxModel lookup_control_box_model(uint8_t status_0, uint8_t status_7);
 const char *control_box_model_to_string(ControlBoxModel model);
+bool control_box_model_supports_lumbar(ControlBoxModel model);
 
 }  // namespace temperbridge_nova
 }  // namespace esphome

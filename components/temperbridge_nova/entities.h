@@ -40,11 +40,6 @@ protected:
     MfpActuator _actuator{MfpActuator::HEAD};
 };
 
-class TemperBridgeNovaButton : public button::Button {
-protected:
-    void press_action() override;
-};
-
 class TemperBridgeNovaStopButton : public button::Button, public Parented<TemperBridgeNovaComponent> {
 protected:
     void press_action() override;
