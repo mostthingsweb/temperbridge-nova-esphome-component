@@ -13,7 +13,8 @@ namespace temperbridge_nova {
 
 void send_custom_key_action(TemperBridgeNovaComponent *parent, const std::string &key_code);
 
-template<typename... Ts> class TemperBridgeNovaSendKeyAction : public Action<Ts...>, public Parented<TemperBridgeNovaComponent> {
+template<typename... Ts>
+class TemperBridgeNovaSendKeyAction : public Action<Ts...>, public Parented<TemperBridgeNovaComponent> {
 public:
     TEMPLATABLE_VALUE(std::string, key_code)
 
