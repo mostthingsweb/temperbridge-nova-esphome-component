@@ -68,6 +68,10 @@ public:
         this->_control_box_model_sensor.set_sensor(sensor);
     }
 
+    void set_control_box_signature_sensor(text_sensor::TextSensor *sensor) {
+        this->_control_box_signature_sensor.set_sensor(sensor);
+    }
+
     void set_lumbar_supported_sensor(binary_sensor::BinarySensor *sensor) {
         this->_lumbar_supported_sensor = sensor;
     }
@@ -90,14 +94,6 @@ public:
 
     void set_lumbar_pulse_sensor(sensor::Sensor *sensor) {
         this->_lumbar_pulse.set_sensor(sensor);
-    }
-
-    void set_status_0_sensor(sensor::Sensor *sensor) {
-        this->_status_0.set_sensor(sensor);
-    }
-
-    void set_status_7_sensor(sensor::Sensor *sensor) {
-        this->_status_7.set_sensor(sensor);
     }
 
     void set_head_cover(TemperBridgeNovaCover *cover) {
@@ -153,10 +149,9 @@ protected:
     text_sensor::TextSensor *_mfp_link_state_sensor{nullptr};
     text_sensor::TextSensor *_key_sensor{nullptr};
     DistinctValueSensor<std::string> _control_box_model_sensor{};
+    DistinctValueSensor<std::string> _control_box_signature_sensor{};
     binary_sensor::BinarySensor *_lumbar_supported_sensor{nullptr};
     DistinctValueSensor<std::string> _movement_state_sensor{};
-    DistinctValueSensor<uint8_t> _status_0{};
-    DistinctValueSensor<uint8_t> _status_7{};
     static constexpr size_t STATUS_PACKET_CAPTURE_COUNT = 10;
     void start_status_packet_capture_();
     void capture_status_packet_(const uint8_t *data, size_t length);

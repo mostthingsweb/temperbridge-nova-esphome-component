@@ -19,6 +19,7 @@ CONF_BOARD_ID = "board_id"
 CONF_BOARD_ID_PINS = "board_id_pins"
 CONF_CAPTURE_STATUS_PACKETS = "capture_status_packets"
 CONF_CONTROL_BOX_MODEL = "control_box_model"
+CONF_CONTROL_BOX_SIGNATURE = "control_box_signature"
 CONF_KEY_CODE = "key_code"
 CONF_HEAD = "head"
 CONF_HEAD_LOWER = "head_lower"
@@ -38,8 +39,6 @@ CONF_LUMBAR_SUPPORTED = "lumbar_supported"
 CONF_MOVEMENT_STATE = "movement_state"
 CONF_RX_ENABLE_PIN = "rx_enable_pin"
 CONF_STOP = "stop"
-CONF_STATUS_0 = "status_0"
-CONF_STATUS_7 = "status_7"
 CONF_STATUS_PACKET_CAPTURE = "status_packet_capture"
 
 DEFAULT_BOARD_ID_PINS = [4, 5, 6, 7]
@@ -148,6 +147,13 @@ CONFIG_SCHEMA = (
                 ),
                 "Control Box Model",
             ),
+            cv.Optional(CONF_CONTROL_BOX_SIGNATURE, default={}): _with_default_name(
+                text_sensor.text_sensor_schema(
+                    icon="mdi:fingerprint",
+                    entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+                ),
+                "Control Box Signature",
+            ),
             cv.Optional(CONF_LUMBAR_SUPPORTED, default={}): _with_default_name(
                 binary_sensor.binary_sensor_schema(
                     icon="mdi:bed",
@@ -185,24 +191,6 @@ CONFIG_SCHEMA = (
                     state_class=STATE_CLASS_MEASUREMENT,
                 ),
                 "Lumbar Pulse",
-            ),
-            cv.Optional(CONF_STATUS_0, default={}): _with_default_name(
-                sensor.sensor_schema(
-                    icon="mdi:code-brackets",
-                    accuracy_decimals=0,
-                    entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
-                    state_class=STATE_CLASS_MEASUREMENT,
-                ),
-                "Status[0]",
-            ),
-            cv.Optional(CONF_STATUS_7, default={}): _with_default_name(
-                sensor.sensor_schema(
-                    icon="mdi:code-brackets",
-                    accuracy_decimals=0,
-                    entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
-                    state_class=STATE_CLASS_MEASUREMENT,
-                ),
-                "Status[7]",
             ),
             cv.Optional(CONF_STATUS_PACKET_CAPTURE, default={}): _with_default_name(
                 text_sensor.text_sensor_schema(
@@ -321,6 +309,9 @@ async def to_code(config):
     control_box_model_sensor = await text_sensor.new_text_sensor(config[CONF_CONTROL_BOX_MODEL])
     cg.add(var.set_control_box_model_sensor(control_box_model_sensor))
 
+    control_box_signature_sensor = await text_sensor.new_text_sensor(config[CONF_CONTROL_BOX_SIGNATURE])
+    cg.add(var.set_control_box_signature_sensor(control_box_signature_sensor))
+
     lumbar_supported_sensor = await binary_sensor.new_binary_sensor(config[CONF_LUMBAR_SUPPORTED])
     cg.add(var.set_lumbar_supported_sensor(lumbar_supported_sensor))
 
@@ -332,12 +323,6 @@ async def to_code(config):
     await _new_sensor(config, CONF_LEGS_PULSE, var.set_legs_pulse_sensor)
 
     await _new_sensor(config, CONF_LUMBAR_PULSE, var.set_lumbar_pulse_sensor)
-
-    status_0_sensor = await sensor.new_sensor(config[CONF_STATUS_0])
-    cg.add(var.set_status_0_sensor(status_0_sensor))
-
-    status_7_sensor = await sensor.new_sensor(config[CONF_STATUS_7])
-    cg.add(var.set_status_7_sensor(status_7_sensor))
 
     status_packet_capture_sensor = await text_sensor.new_text_sensor(config[CONF_STATUS_PACKET_CAPTURE])
     cg.add(var.set_status_packet_capture_sensor(status_packet_capture_sensor))

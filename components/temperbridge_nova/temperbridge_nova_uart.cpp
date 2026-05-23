@@ -116,8 +116,11 @@ void TemperBridgeNovaComponent::process_status_packet_(const uint8_t *data, size
 
     const uint8_t status_0 = packet.status_0();
     const uint8_t status_7 = packet.status_7();
-    this->_status_0.publish_state(status_0);
-    this->_status_7.publish_state(status_7);
+
+    char signature_payload[8];
+    std::snprintf(signature_payload, sizeof(signature_payload), "%u,%u", static_cast<unsigned>(status_0),
+                  static_cast<unsigned>(status_7));
+    this->_control_box_signature_sensor.publish_state(signature_payload);
 
     const ControlBoxModel control_box_model = lookup_control_box_model(status_0, status_7);
     if (control_box_model != this->_control_box_model) {
