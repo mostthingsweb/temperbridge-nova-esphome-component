@@ -19,20 +19,6 @@ enum class MfpActuator : uint8_t {
     LUMBAR = 2,
 };
 
-enum class MfpButtonCommand : uint8_t {
-    STOP = 0,
-    FLAT = 1,
-    ZERO_G = 2,
-    TV = 3,
-    FAVORITE_1 = 4,
-    FAVORITE_2 = 5,
-    ANTI_SNORE = 6,
-    TOGGLE_LIGHTS = 7,
-    MASSAGE_WAVE_MODE = 8,
-    HEAD_ZONE_MASSAGE = 9,
-    FOOT_ZONE_MASSAGE = 10,
-};
-
 class TemperBridgeNovaCover : public cover::Cover, public Parented<TemperBridgeNovaComponent> {
 public:
     void set_actuator(MfpActuator actuator) {
@@ -49,16 +35,14 @@ protected:
     MfpActuator _actuator{MfpActuator::HEAD};
 };
 
-class TemperBridgeNovaButton : public button::Button, public Parented<TemperBridgeNovaComponent> {
-public:
-    void set_command(MfpButtonCommand command) {
-        this->_command = command;
-    }
-
+class TemperBridgeNovaButton : public button::Button {
 protected:
     void press_action() override;
+};
 
-    MfpButtonCommand _command{MfpButtonCommand::STOP};
+class TemperBridgeNovaStopButton : public button::Button, public Parented<TemperBridgeNovaComponent> {
+protected:
+    void press_action() override;
 };
 
 class TemperBridgeNovaStatusPacketCaptureButton : public button::Button, public Parented<TemperBridgeNovaComponent> {

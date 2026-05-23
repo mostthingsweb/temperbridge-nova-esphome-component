@@ -3,9 +3,13 @@ import esphome.codegen as cg
 from esphome.components import button, cover, sensor, switch, text_sensor, uart
 import esphome.config_validation as cv
 from esphome.const import (
+    CONF_AUTOMATION_ID,
     CONF_KEY,
     CONF_ID,
     CONF_NAME,
+    CONF_ON_PRESS,
+    CONF_THEN,
+    CONF_TYPE_ID,
     ENTITY_CATEGORY_DIAGNOSTIC,
     ICON_PULSE,
     STATE_CLASS_MEASUREMENT,
@@ -54,10 +58,12 @@ TemperBridgeNovaComponent = temperbridge_nova_ns.class_(
 TemperBridgeNovaCover = temperbridge_nova_ns.class_("TemperBridgeNovaCover", cover.Cover)
 MfpActuator = temperbridge_nova_ns.enum("MfpActuator", is_class=True)
 TemperBridgeNovaButton = temperbridge_nova_ns.class_("TemperBridgeNovaButton", button.Button)
+TemperBridgeNovaStopButton = temperbridge_nova_ns.class_(
+    "TemperBridgeNovaStopButton", button.Button
+)
 TemperBridgeNovaStatusPacketCaptureButton = temperbridge_nova_ns.class_(
     "TemperBridgeNovaStatusPacketCaptureButton", button.Button
 )
-MfpButtonCommand = temperbridge_nova_ns.enum("MfpButtonCommand", is_class=True)
 TemperBridgeNovaStatusPacketLogSwitch = temperbridge_nova_ns.class_(
     "TemperBridgeNovaStatusPacketLogSwitch", switch.Switch
 )
@@ -72,6 +78,43 @@ def _with_default_name(schema, name):
         return value
 
     return cv.All(set_default_name, schema)
+
+
+BUTTON_KEY_CODES = {
+    CONF_FLAT: "08000000",
+    CONF_ZERO_G: "00100000",
+    CONF_TV: "00400000",
+    CONF_FAVORITE_1: "00000100",
+    CONF_FAVORITE_2: "00000080",
+    CONF_ANTI_SNORE: "00800000",
+    CONF_TOGGLE_LIGHTS: "00000200",
+    CONF_MASSAGE_WAVE_MODE: "00000004",
+    CONF_HEAD_ZONE_MASSAGE: "00080000",
+    CONF_FOOT_ZONE_MASSAGE: "00040000",
+}
+
+
+def _with_send_key_action(config, button_key):
+    button_config = dict(config[button_key])
+    send_key_automation = automation.validate_automation({})(
+        {
+            CONF_AUTOMATION_ID: f"temperbridge_nova_{button_key}_send_key_automation",
+            CONF_THEN: [
+                {
+                    CONF_TYPE_ID: f"temperbridge_nova_{button_key}_send_key_action",
+                    "temperbridge_nova.send_key": {
+                        CONF_ID: config[CONF_ID],
+                        CONF_KEY_CODE: BUTTON_KEY_CODES[button_key],
+                    }
+                }
+            ],
+        }
+    )
+    button_config[CONF_ON_PRESS] = [
+        *send_key_automation,
+        *button_config.get(CONF_ON_PRESS, []),
+    ]
+    return button_config
 
 
 CONFIG_SCHEMA = (
@@ -171,7 +214,7 @@ CONFIG_SCHEMA = (
                 "Lumbar",
             ),
             cv.Optional(CONF_STOP, default={}): _with_default_name(
-                button.button_schema(TemperBridgeNovaButton, icon="mdi:stop"),
+                button.button_schema(TemperBridgeNovaStopButton, icon="mdi:stop"),
                 "Stop",
             ),
             cv.Optional(CONF_FLAT, default={}): _with_default_name(
@@ -307,47 +350,26 @@ async def to_code(config):
 
     stop_button = await button.new_button(config[CONF_STOP])
     cg.add(stop_button.set_parent(var))
-    cg.add(stop_button.set_command(MfpButtonCommand.STOP))
 
-    flat_button = await button.new_button(config[CONF_FLAT])
-    cg.add(flat_button.set_parent(var))
-    cg.add(flat_button.set_command(MfpButtonCommand.FLAT))
+    await button.new_button(_with_send_key_action(config, CONF_FLAT))
 
-    zero_g_button = await button.new_button(config[CONF_ZERO_G])
-    cg.add(zero_g_button.set_parent(var))
-    cg.add(zero_g_button.set_command(MfpButtonCommand.ZERO_G))
+    await button.new_button(_with_send_key_action(config, CONF_ZERO_G))
 
-    tv_button = await button.new_button(config[CONF_TV])
-    cg.add(tv_button.set_parent(var))
-    cg.add(tv_button.set_command(MfpButtonCommand.TV))
+    await button.new_button(_with_send_key_action(config, CONF_TV))
 
-    favorite_1_button = await button.new_button(config[CONF_FAVORITE_1])
-    cg.add(favorite_1_button.set_parent(var))
-    cg.add(favorite_1_button.set_command(MfpButtonCommand.FAVORITE_1))
+    await button.new_button(_with_send_key_action(config, CONF_FAVORITE_1))
 
-    favorite_2_button = await button.new_button(config[CONF_FAVORITE_2])
-    cg.add(favorite_2_button.set_parent(var))
-    cg.add(favorite_2_button.set_command(MfpButtonCommand.FAVORITE_2))
+    await button.new_button(_with_send_key_action(config, CONF_FAVORITE_2))
 
-    anti_snore_button = await button.new_button(config[CONF_ANTI_SNORE])
-    cg.add(anti_snore_button.set_parent(var))
-    cg.add(anti_snore_button.set_command(MfpButtonCommand.ANTI_SNORE))
+    await button.new_button(_with_send_key_action(config, CONF_ANTI_SNORE))
 
-    lights_button = await button.new_button(config[CONF_TOGGLE_LIGHTS])
-    cg.add(lights_button.set_parent(var))
-    cg.add(lights_button.set_command(MfpButtonCommand.TOGGLE_LIGHTS))
+    await button.new_button(_with_send_key_action(config, CONF_TOGGLE_LIGHTS))
 
-    massage_wave_mode_button = await button.new_button(config[CONF_MASSAGE_WAVE_MODE])
-    cg.add(massage_wave_mode_button.set_parent(var))
-    cg.add(massage_wave_mode_button.set_command(MfpButtonCommand.MASSAGE_WAVE_MODE))
+    await button.new_button(_with_send_key_action(config, CONF_MASSAGE_WAVE_MODE))
 
-    head_zone_massage_button = await button.new_button(config[CONF_HEAD_ZONE_MASSAGE])
-    cg.add(head_zone_massage_button.set_parent(var))
-    cg.add(head_zone_massage_button.set_command(MfpButtonCommand.HEAD_ZONE_MASSAGE))
+    await button.new_button(_with_send_key_action(config, CONF_HEAD_ZONE_MASSAGE))
 
-    foot_zone_massage_button = await button.new_button(config[CONF_FOOT_ZONE_MASSAGE])
-    cg.add(foot_zone_massage_button.set_parent(var))
-    cg.add(foot_zone_massage_button.set_command(MfpButtonCommand.FOOT_ZONE_MASSAGE))
+    await button.new_button(_with_send_key_action(config, CONF_FOOT_ZONE_MASSAGE))
 
     capture_status_packets_button = await button.new_button(config[CONF_CAPTURE_STATUS_PACKETS])
     cg.add(capture_status_packets_button.set_parent(var))

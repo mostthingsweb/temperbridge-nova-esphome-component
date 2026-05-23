@@ -105,7 +105,7 @@ public:
 
     void handle_cover_command(MfpActuator actuator, bool open);
     void handle_stop_command();
-    void handle_button_command(MfpButtonCommand command);
+    void handle_stop_button_command();
     void handle_status_packet_capture_command();
     void send_custom_key_code(const MfpCommandBytes &command);
     void set_status_packet_logging_enabled(bool enabled);

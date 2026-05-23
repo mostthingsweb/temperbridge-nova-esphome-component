@@ -40,10 +40,13 @@ void TemperBridgeNovaCover::control(const cover::CoverCall &call) {
 }
 
 void TemperBridgeNovaButton::press_action() {
+}
+
+void TemperBridgeNovaStopButton::press_action() {
     if (this->parent_ == nullptr) {
         return;
     }
-    this->parent_->handle_button_command(this->_command);
+    this->parent_->handle_stop_button_command();
 }
 
 void TemperBridgeNovaStatusPacketCaptureButton::press_action() {

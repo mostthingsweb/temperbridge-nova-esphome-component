@@ -159,42 +159,8 @@ void TemperBridgeNovaComponent::handle_stop_command() {
     this->handle_button_command_(mfp_commands::STOP, "movement stop");
 }
 
-void TemperBridgeNovaComponent::handle_button_command(MfpButtonCommand command) {
-    switch (command) {
-    case MfpButtonCommand::STOP:
-        this->handle_button_command_(mfp_commands::STOP, "stop");
-        break;
-    case MfpButtonCommand::FLAT:
-        this->handle_button_command_(mfp_commands::FLAT, "flat");
-        break;
-    case MfpButtonCommand::ZERO_G:
-        this->handle_button_command_(mfp_commands::ZERO_G, "zero g");
-        break;
-    case MfpButtonCommand::TV:
-        this->handle_button_command_(mfp_commands::TV, "tv");
-        break;
-    case MfpButtonCommand::FAVORITE_1:
-        this->handle_button_command_(mfp_commands::FAVORITE_1, "favorite 1");
-        break;
-    case MfpButtonCommand::FAVORITE_2:
-        this->handle_button_command_(mfp_commands::FAVORITE_2, "favorite 2");
-        break;
-    case MfpButtonCommand::ANTI_SNORE:
-        this->handle_button_command_(mfp_commands::ANTI_SNORE, "anti-snore");
-        break;
-    case MfpButtonCommand::TOGGLE_LIGHTS:
-        this->handle_button_command_(mfp_commands::TOGGLE_LIGHTS, "toggle lights");
-        break;
-    case MfpButtonCommand::MASSAGE_WAVE_MODE:
-        this->handle_button_command_(mfp_commands::MASSAGE_WAVE_MODE, "massage wave mode");
-        break;
-    case MfpButtonCommand::HEAD_ZONE_MASSAGE:
-        this->handle_button_command_(mfp_commands::HEAD_ZONE_MASSAGE, "head zone massage");
-        break;
-    case MfpButtonCommand::FOOT_ZONE_MASSAGE:
-        this->handle_button_command_(mfp_commands::FOOT_ZONE_MASSAGE, "foot zone massage");
-        break;
-    }
+void TemperBridgeNovaComponent::handle_stop_button_command() {
+    this->handle_button_command_(mfp_commands::STOP, "stop");
 }
 
 void TemperBridgeNovaComponent::handle_status_packet_capture_command() {
