@@ -28,6 +28,15 @@ temperbridge_nova:
   id: ${temperbridge_nova_id}
   uart_id: ${mfp_uart_id}
 
+light:
+  - platform: esp32_rmt_led_strip
+    name: Status LED
+    pin: GPIO21
+    num_leds: 1
+    chipset: WS2812
+    rgb_order: GRB
+    restore_mode: RESTORE_DEFAULT_OFF
+
 text:
   - platform: template
     id: custom_mfp_key_code
