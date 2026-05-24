@@ -59,3 +59,5 @@ button:
       - temperbridge_nova.send_key:
           id: ${temperbridge_nova_id}
           key_code: !lambda "return id(custom_mfp_key_code).state;"
+  - platform: factory_reset
+    name: Restart with Factory Default Settings
