@@ -230,6 +230,12 @@ void TemperBridgeNovaComponent::handle_status_packet_capture_command() {
 }
 
 void TemperBridgeNovaComponent::send_custom_key_code(const MfpCommandBytes &command, const std::string &key_code) {
+    if (command == mfp_commands::FLAT && this->_movement_state != MovementState::STOPPED) {
+        // This also kicks us into `MovementState::STOPPED`
+        this->handle_button_command_(mfp_commands::STOP, "flat stop", key_code);
+        return;
+    }
+
     this->handle_button_command_(command, "custom key", key_code);
 }
 
