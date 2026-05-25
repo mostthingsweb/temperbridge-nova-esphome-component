@@ -2,8 +2,9 @@
 # use 'esphome compile temperbridge_nova.yaml' to build.
 
 esphome:
-  name: temperbridge_nova
+  name: temperbridge-nova
   build_path: build/temperbridge_nova
+  name_add_mac_suffix: true
 
 packages:
   temperbridge_nova_base: !include packages/temperbridge_nova/base.yaml
