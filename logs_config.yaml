@@ -1,0 +1,13 @@
+# bare minimum config for usage by 'esphome logs' command
+esphome:
+  name: temperbridge-nova
+  build_path: build/temperbridge_nova
+  name_add_mac_suffix: true
+
+esp32:
+  variant: esp32s3
+  framework:
+    type: esp-idf
+
+logger:
+
