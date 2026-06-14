@@ -37,3 +37,5 @@ binary_sensor:
 
 esp32_improv:
   authorizer: improv_authorizer
+
+improv_serial:
