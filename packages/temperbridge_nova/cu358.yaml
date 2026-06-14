@@ -42,14 +42,6 @@ button:
           key_code: "00010000"
 
   - platform: template
-    name: Favorite 2
-    icon: mdi:numeric-2-box
-    on_press:
-      - temperbridge_nova.send_key:
-          id: ${temperbridge_nova_id}
-          key_code: "80000000"
-
-  - platform: template
     name: Anti-Snore
     icon: mdi:bed
     on_press:
